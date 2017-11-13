@@ -1,56 +1,71 @@
-package main
+package slackbot
 
 import (
+	"errors"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 
 	"github.com/nlopes/slack"
 )
 
-func main() {
-	logger := log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)
-	token := os.Getenv("SLACK_TOKEN")
-	logger.Println("SLACK_TOKEN:", token)
-	api := slack.New(token)
+type Slackbot struct {
+	api *slack.Client
+	rtm *slack.RTM
+}
 
-	slack.SetLogger(logger)
-	rtm := api.NewRTM()
-	go rtm.ManageConnection()
+type BotMsg struct {
+	Channel   string
+	User      string
+	Msg       string
+	DirectMsg bool
+}
 
-Loop:
+func New(token string) *Slackbot {
+	sb := &Slackbot{}
+	sb.api = slack.New(token)
+	sb.rtm = sb.api.NewRTM()
+	go sb.rtm.ManageConnection()
+	return sb
+}
+
+func (sb *Slackbot) Recv() (*BotMsg, error) {
+
 	for {
 		select {
-		case msg := <-rtm.IncomingEvents:
+		case msg := <-sb.rtm.IncomingEvents:
 			switch ev := msg.Data.(type) {
-			case *slack.ConnectedEvent:
-				logger.Println("Connected, counter:", ev.ConnectionCount)
-
 			case *slack.MessageEvent:
-				logger.Printf("Message: %v\n", ev)
-				info := rtm.GetInfo()
+				info := sb.rtm.GetInfo()
 				botname := fmt.Sprintf("<@%s> ", info.User.ID)
 
-				_, err1 := api.GetChannelInfo(ev.Channel)
-				_, err2 := api.GetGroupInfo(ev.Channel)
+				_, err1 := sb.api.GetChannelInfo(ev.Channel)
+				_, err2 := sb.api.GetGroupInfo(ev.Channel)
 				isDirectMsg := err1 != nil && err2 != nil
 
 				if ev.User != info.User.ID &&
 					(strings.HasPrefix(ev.Text, botname) || isDirectMsg) {
-					rtm.SendMessage(rtm.NewOutgoingMessage("TEST!", ev.Channel))
+					return &BotMsg{ev.Channel, ev.User, strings.TrimPrefix(ev.Text, botname), isDirectMsg}, nil
 				}
 
 			case *slack.RTMError:
-				logger.Printf("Error: %s\n", ev.Error())
+				return nil, errors.New("RTM error")
 
 			case *slack.InvalidAuthEvent:
-				logger.Printf("Invalid credentials")
-				break Loop
+				return nil, errors.New("Invalid authentication")
 
 			default:
 				//Take no action
 			}
 		}
 	}
+}
+
+func (sb *Slackbot) Reply(recv *BotMsg, msg string) {
+	var s string
+	if recv.DirectMsg {
+		s = recv.Msg
+	} else {
+		s = fmt.Sprintf("<@%s> %s", recv.User, recv.Msg)
+	}
+	sb.rtm.SendMessage(sb.rtm.NewOutgoingMessage(s, recv.Channel))
 }
