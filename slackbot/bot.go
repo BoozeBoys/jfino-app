@@ -63,9 +63,9 @@ func (sb *Slackbot) Recv() (*BotMsg, error) {
 func (sb *Slackbot) Reply(recv *BotMsg, msg string) {
 	var s string
 	if recv.DirectMsg {
-		s = recv.Msg
+		s = msg
 	} else {
-		s = fmt.Sprintf("<@%s> %s", recv.User, recv.Msg)
+		s = fmt.Sprintf("<@%s> %s", recv.User, msg)
 	}
 	sb.rtm.SendMessage(sb.rtm.NewOutgoingMessage(s, recv.Channel))
 }
