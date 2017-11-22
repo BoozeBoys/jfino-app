@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/BoozeBoys/jfino-app/state"
 	"github.com/BoozeBoys/jfino-app/tasks"
 	"github.com/BoozeBoys/jfino-app/testutils"
 )
 
 func TestSendCommands(t *testing.T) {
-	s := new(tasks.State)
+	s := new(state.State)
 	s.Power = true
 	s.Motors[0].Speed = 255
 	s.Motors[1].Speed = 255
@@ -50,7 +51,7 @@ func TestSendCommands(t *testing.T) {
 }
 
 func TestSendCommandsError(t *testing.T) {
-	s := new(tasks.State)
+	s := new(state.State)
 
 	mc := new(testutils.CommanderMock)
 	task := tasks.NewSendCommands(mc)

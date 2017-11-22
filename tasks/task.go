@@ -1,15 +1,7 @@
 package tasks
 
-type Motor struct {
-	Speed   int
-	Current int
-}
-
-type State struct {
-	Power  bool
-	Motors [2]Motor
-}
+import "github.com/BoozeBoys/jfino-app/state"
 
 type Task interface {
-	Perform(*State) error
+	Perform(*state.State) error
 }

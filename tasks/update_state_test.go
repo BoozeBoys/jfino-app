@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/BoozeBoys/jfino-app/state"
 	"github.com/BoozeBoys/jfino-app/tasks"
 	"github.com/BoozeBoys/jfino-app/testutils"
 )
@@ -14,7 +15,7 @@ func TestUpdateStatePower(t *testing.T) {
 		[]byte("POWER 1"),
 	})
 
-	s := new(tasks.State)
+	s := new(state.State)
 	task := tasks.NewUpdateStatus(r)
 
 	if err := task.Perform(s); err != nil {
@@ -33,7 +34,7 @@ func TestUpdateStateSpeed(t *testing.T) {
 		[]byte("SPEED 1 -255"),
 	})
 
-	s := new(tasks.State)
+	s := new(state.State)
 	task := tasks.NewUpdateStatus(r)
 
 	if err := task.Perform(s); err != nil {
@@ -56,7 +57,7 @@ func TestUpdateStateCurrent(t *testing.T) {
 		[]byte("CURRENT 1 1023"),
 	})
 
-	s := new(tasks.State)
+	s := new(state.State)
 	task := tasks.NewUpdateStatus(r)
 
 	if err := task.Perform(s); err != nil {
@@ -76,7 +77,7 @@ func TestUpdateStateError(t *testing.T) {
 	r := new(testutils.StatusReaderMock)
 	r.SetError(errors.New("error"))
 
-	s := new(tasks.State)
+	s := new(state.State)
 	task := tasks.NewUpdateStatus(r)
 
 	if err := task.Perform(s); err == nil {

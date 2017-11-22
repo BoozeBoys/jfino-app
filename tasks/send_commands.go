@@ -1,5 +1,7 @@
 package tasks
 
+import "github.com/BoozeBoys/jfino-app/state"
+
 type Commander interface {
 	Power(bool) error
 	Speed(int, int) error
@@ -13,7 +15,7 @@ func NewSendCommands(c Commander) *SendCommands {
 	return &SendCommands{c: c}
 }
 
-func (c *SendCommands) Perform(s *State) error {
+func (c *SendCommands) Perform(s *state.State) error {
 	if err := c.c.Power(s.Power); err != nil {
 		return err
 	}

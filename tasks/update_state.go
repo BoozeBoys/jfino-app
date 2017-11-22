@@ -3,6 +3,8 @@ package tasks
 import (
 	"bytes"
 	"strconv"
+
+	"github.com/BoozeBoys/jfino-app/state"
 )
 
 type StatusReader interface {
@@ -17,7 +19,7 @@ func NewUpdateStatus(r StatusReader) *UpdateState {
 	return &UpdateState{r: r}
 }
 
-func (c *UpdateState) Perform(s *State) error {
+func (c *UpdateState) Perform(s *state.State) error {
 	lines, err := c.r.Status()
 	if err != nil {
 		return err

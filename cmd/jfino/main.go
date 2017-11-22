@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BoozeBoys/jfino-app/commander"
+	"github.com/BoozeBoys/jfino-app/state"
 	"github.com/BoozeBoys/jfino-app/tasks"
 	"github.com/tarm/serial"
 )
@@ -43,7 +44,7 @@ func main() {
 	t := time.NewTicker(100 * time.Millisecond)
 	defer t.Stop()
 
-	state := new(tasks.State)
+	state := new(state.State)
 
 	for range t.C {
 		for _, t := range taskList {
