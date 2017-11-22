@@ -5,36 +5,8 @@ import (
 	"testing"
 
 	"github.com/BoozeBoys/jfino-app/commander"
+	"github.com/BoozeBoys/jfino-app/testutils"
 )
-
-type SerialMock struct {
-	reply   *bytes.Buffer
-	command []byte
-}
-
-func NewSerialMock(reply [][]byte) *SerialMock {
-	buf := new(bytes.Buffer)
-
-	for _, line := range reply {
-		buf.Write(append(line, []byte("\r\n")...))
-	}
-
-	return &SerialMock{reply: buf}
-}
-
-func (sm *SerialMock) Read(data []byte) (int, error) {
-	return sm.reply.Read(data)
-}
-
-func (sm *SerialMock) Write(data []byte) (int, error) {
-	sm.command = append(sm.command, data...)
-
-	return len(data), nil
-}
-
-func (sm *SerialMock) Command() []byte {
-	return sm.command
-}
 
 func TestPower(t *testing.T) {
 	cases := []struct {
@@ -50,7 +22,7 @@ func TestPower(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		rw := NewSerialMock(tc.reply)
+		rw := testutils.NewSerialMock(tc.reply)
 		c := commander.New(rw)
 
 		err := c.Power(tc.on)
@@ -59,8 +31,8 @@ func TestPower(t *testing.T) {
 			t.Errorf("want: %v got: %v\n", tc.err, err)
 		}
 
-		got := rw.Command()
-		want := append(tc.want, []byte("\r\n")...)
+		got := rw.LastCommand()
+		want := tc.want
 
 		if !bytes.Equal(want, got) {
 			t.Errorf("want: %s, got: %s\n", want, got)
@@ -85,7 +57,7 @@ func TestSpeed(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		rw := NewSerialMock(tc.reply)
+		rw := testutils.NewSerialMock(tc.reply)
 		c := commander.New(rw)
 
 		err := c.Speed(tc.speed1, tc.speed2)
@@ -94,8 +66,8 @@ func TestSpeed(t *testing.T) {
 			t.Errorf("want: %v got: %v\n", tc.err, err)
 		}
 
-		got := rw.Command()
-		want := append(tc.want, []byte("\r\n")...)
+		got := rw.LastCommand()
+		want := tc.want
 
 		if !bytes.Equal(want, got) {
 			t.Errorf("want: %s, got: %s\n", want, got)
@@ -121,7 +93,7 @@ func TestStatus(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		rw := NewSerialMock(tc.reply)
+		rw := testutils.NewSerialMock(tc.reply)
 		c := commander.New(rw)
 
 		reply, err := c.Status()
@@ -140,8 +112,8 @@ func TestStatus(t *testing.T) {
 			}
 		}
 
-		got := rw.Command()
-		want := append(tc.want, []byte("\r\n")...)
+		got := rw.LastCommand()
+		want := tc.want
 
 		if !bytes.Equal(want, got) {
 			t.Errorf("want: %s, got: %s\n", want, got)
