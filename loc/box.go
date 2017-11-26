@@ -5,33 +5,67 @@ type Box struct {
 }
 
 func (b *Box) Center() Point {
-	x := (b.P0.X + b.P1.X) / 2
-	y := (b.P0.Y + b.P1.Y) / 2
-	z := (b.P0.Z + b.P1.Z) / 2
-	return Point{X: x, Y: y, Z: z}
+	var a Point
+	for i := 0; i < len(a); i++ {
+		a[i] = (b.P0[i] + b.P1[i]) / 2
+	}
+
+	return a
 }
 
-/*Slice slices the box in 8 sub-boxes, cutting it in the center */
-func (b *Box) Slice() [8]Box {
-	p0 := Point{X: b.P0.X, Y: b.P0.Y, Z: b.P0.Z}
-	p1 := Point{X: b.P0.X, Y: b.P1.Y, Z: b.P0.Z}
-	p2 := Point{X: b.P1.X, Y: b.P1.Y, Z: b.P0.Z}
-	p3 := Point{X: b.P1.X, Y: b.P0.Y, Z: b.P0.Z}
+func (b *Box) transposeCoord(coord uint) Box {
+	p0 := b.P0
+	p1 := b.P1
 
-	p4 := Point{X: b.P0.X, Y: b.P0.Y, Z: b.P1.Z}
-	p5 := Point{X: b.P0.X, Y: b.P1.Y, Z: b.P1.Z}
-	p6 := Point{X: b.P1.X, Y: b.P1.Y, Z: b.P1.Z}
-	p7 := Point{X: b.P1.X, Y: b.P0.Y, Z: b.P1.Z}
+	tmp := p0[coord]
+	p0[coord] = p1[coord]
+	p1[coord] = tmp
+
+	return Box{P0: p0, P1: p1}
+}
+
+func (b *Box) TransposeX() Box {
+	return b.transposeCoord(0)
+}
+
+func (b *Box) TransposeY() Box {
+	return b.transposeCoord(1)
+}
+
+func (b *Box) TransposeZ() Box {
+	return b.transposeCoord(2)
+}
+
+func (b *Box) issame(b1 Box) bool {
+	return (b.P0.IsEqual(b1.P0) && b.P1.IsEqual(b1.P1)) || (b.P0.IsEqual(b1.P1) && b.P1.IsEqual(b1.P0))
+}
+
+/*IsEqual returns true is 2 boxes are equivalent */
+func (b *Box) IsEqual(b1 Box) bool {
+	if b.issame(b1) || b.issame(b1.TransposeX()) || b.issame(b1.TransposeY()) || b.issame(b1.TransposeZ()) {
+		return true
+	}
+
+	return false
+}
+
+/*Bisect slices the box in 8 sub-boxes, cutting it in the center */
+func (b *Box) Bisect() [8]Box {
+	var p [8]Point
+	p[0] = Point{b.P0[0], b.P0[1], b.P0[2]}
+	p[1] = Point{b.P0[0], b.P1[1], b.P0[2]}
+	p[2] = Point{b.P1[0], b.P1[1], b.P0[2]}
+	p[3] = Point{b.P1[0], b.P0[1], b.P0[2]}
+	p[4] = Point{b.P0[0], b.P0[1], b.P1[2]}
+	p[5] = Point{b.P0[0], b.P1[1], b.P1[2]}
+	p[6] = Point{b.P1[0], b.P1[1], b.P1[2]}
+	p[7] = Point{b.P1[0], b.P0[1], b.P1[2]}
 
 	c := b.Center()
 	a := [8]Box{}
-	a[0] = Box{p0, c}
-	a[1] = Box{p1, c}
-	a[2] = Box{p2, c}
-	a[3] = Box{p3, c}
-	a[4] = Box{p4, c}
-	a[5] = Box{p5, c}
-	a[6] = Box{p6, c}
-	a[7] = Box{p7, c}
+	for i := 0; i < len(a); i++ {
+		a[i] = Box{p[i], c}
+	}
+
 	return a
 }
