@@ -6,7 +6,7 @@ type Box struct {
 
 func (b *Box) Center() Point {
 	var a Point
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		a[i] = (b.P0[i] + b.P1[i]) / 2
 	}
 
@@ -63,7 +63,7 @@ func (b *Box) Bisect() [8]Box {
 
 	c := b.Center()
 	a := [8]Box{}
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		a[i] = Box{p[i], c}
 	}
 
