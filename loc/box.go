@@ -1,27 +1,25 @@
 package loc
 
-type Box struct {
-	P0, P1 Point
-}
+type Box [2]Point
 
 func (b *Box) Center() Point {
 	var a Point
 	for i := range a {
-		a[i] = (b.P0[i] + b.P1[i]) / 2
+		a[i] = (b[0][i] + b[1][i]) / 2
 	}
 
 	return a
 }
 
 func (b *Box) transposeCoord(coord uint) Box {
-	p0 := b.P0
-	p1 := b.P1
+	p0 := b[0]
+	p1 := b[1]
 
 	tmp := p0[coord]
 	p0[coord] = p1[coord]
 	p1[coord] = tmp
 
-	return Box{P0: p0, P1: p1}
+	return Box{p0, p1}
 }
 
 func (b *Box) TransposeX() Box {
@@ -37,7 +35,7 @@ func (b *Box) TransposeZ() Box {
 }
 
 func (b *Box) issame(b1 Box) bool {
-	return (b.P0.IsEqual(b1.P0) && b.P1.IsEqual(b1.P1)) || (b.P0.IsEqual(b1.P1) && b.P1.IsEqual(b1.P0))
+	return (b[0].IsEqual(b1[0]) && b[1].IsEqual(b1[1])) || (b[0].IsEqual(b1[1]) && b[1].IsEqual(b1[0]))
 }
 
 /*IsEqual returns true is 2 boxes are equivalent */
@@ -52,14 +50,14 @@ func (b *Box) IsEqual(b1 Box) bool {
 /*Bisect slices the box in 8 sub-boxes, cutting it in the center */
 func (b *Box) Bisect() [8]Box {
 	var p [8]Point
-	p[0] = Point{b.P0[0], b.P0[1], b.P0[2]}
-	p[1] = Point{b.P0[0], b.P1[1], b.P0[2]}
-	p[2] = Point{b.P1[0], b.P1[1], b.P0[2]}
-	p[3] = Point{b.P1[0], b.P0[1], b.P0[2]}
-	p[4] = Point{b.P0[0], b.P0[1], b.P1[2]}
-	p[5] = Point{b.P0[0], b.P1[1], b.P1[2]}
-	p[6] = Point{b.P1[0], b.P1[1], b.P1[2]}
-	p[7] = Point{b.P1[0], b.P0[1], b.P1[2]}
+	p[0] = Point{b[0][0], b[0][1], b[0][2]}
+	p[1] = Point{b[0][0], b[1][1], b[0][2]}
+	p[2] = Point{b[1][0], b[1][1], b[0][2]}
+	p[3] = Point{b[1][0], b[0][1], b[0][2]}
+	p[4] = Point{b[0][0], b[0][1], b[1][2]}
+	p[5] = Point{b[0][0], b[1][1], b[1][2]}
+	p[6] = Point{b[1][0], b[1][1], b[1][2]}
+	p[7] = Point{b[1][0], b[0][1], b[1][2]}
 
 	c := b.Center()
 	a := [8]Box{}
