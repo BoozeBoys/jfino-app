@@ -52,11 +52,12 @@ func (ep *EstimatePosition) FindBoundingBox(report map[uint]state.AnchorReport) 
 	//initialize
 	var pmin loc.Point
 	var pmax loc.Point
-	for i := 0; i < len(ep.anchors[id]); i++ {
-		pmin[i] = ep.anchors[id][i]
+	for i, v := range ep.anchors[id] {
+		pmin[i] = v
 		pmax[i] = pmin[i]
 	}
 
+	//find max points
 	for id, r := range report {
 		for i, v := range ep.anchors[id] {
 			min := v - r.Range
@@ -71,30 +72,27 @@ func (ep *EstimatePosition) FindBoundingBox(report map[uint]state.AnchorReport) 
 		}
 	}
 
-	return loc.Box{P0: pmin, P1: pmax}
+	return loc.Box{pmin, pmax}
 }
 
 func (ep *EstimatePosition) ComputePosition(report map[uint]state.AnchorReport) (j loc.Point, accuracy float64) {
 	box := ep.FindBoundingBox(report)
-	accuracy = box.P0.Distance(box.P1)
+	accuracy = box[0].Distance(box[1])
 	maxIter := 25
-	id := 0
 
 loop:
 	for i := 0; i < maxIter; i++ {
 		s := box.Bisect()
 
-		for i, v := range s {
+		for _, v := range s {
 			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
 				accuracy = acc
-				id = i
-			}
-
-			if accuracy <= 0.01 { // 1 cm
-				break loop
+				box = v
+				if accuracy <= 0.005 { // 0.5 cm
+					break loop
+				}
 			}
 		}
-		box = s[id]
 	}
 
 	return box.Center(), accuracy

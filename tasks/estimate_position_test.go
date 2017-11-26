@@ -69,11 +69,33 @@ func TestFindBoundingBox(t *testing.T) {
 
 	b := ep.FindBoundingBox(ranges)
 
-	if !b.P0.IsEqual(loc.Point{-11, -11, -9}) {
+	if !b[0].IsEqual(loc.Point{-11, -11, -9}) {
 		t.Fatalf("bo %v", b)
 	}
 
-	if !b.P1.IsEqual(loc.Point{11, 11, 11}) {
+	if !b[1].IsEqual(loc.Point{11, 11, 11}) {
 		t.Fatalf("bo %v", b)
+	}
+}
+
+func TestComputePosition(t *testing.T) {
+	anchors := make(map[uint]loc.Point)
+
+	anchors[0] = loc.Point{0, 0, 0}
+	anchors[1] = loc.Point{0, 100, 0}
+	anchors[2] = loc.Point{100, 100, 0}
+	anchors[3] = loc.Point{100, 0, 0}
+
+	ranges := make(map[uint]state.AnchorReport)
+	j := loc.Point{50, 50, 0}
+
+	for i := uint(0); i < 4; i++ {
+		ranges[i] = state.AnchorReport{Range: j.Distance(anchors[i])}
+	}
+
+	ep := tasks.NewEstimatePosition(anchors)
+	p, acc := ep.ComputePosition(ranges)
+	if p.Distance(j) > 0.01 {
+		t.Fatalf("p %v, acc %f, dist %f", p, acc, p.Distance(j))
 	}
 }
