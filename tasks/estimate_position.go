@@ -91,4 +91,6 @@ func (ep *EstimatePosition) FindBoundingBox(report map[uint]state.AnchorReport) 
 func (ep *EstimatePosition) ComputePosition(report map[uint]state.AnchorReport) (j loc.Point, best float64) {
 	bbox := ep.FindBoundingBox(report)
 	center := bbox.Center()
+
+	return center, 0
 }
