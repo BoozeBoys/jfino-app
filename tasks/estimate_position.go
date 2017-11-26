@@ -48,49 +48,54 @@ func (ep *EstimatePosition) FindBoundingBox(report map[uint]state.AnchorReport) 
 		id = k
 		break
 	}
-	minX := ep.anchors[id].X
-	minY := ep.anchors[id].Y
-	minZ := ep.anchors[id].Z
-	maxX, maxY, maxZ := minX, minY, minZ
 
-	for id, r := range report {
-		x := ep.anchors[id].X
-		y := ep.anchors[id].Y
-		z := ep.anchors[id].Z
-
-		findMin := func(min, v float64) float64 {
-			m := v - r.Range
-			if m < min {
-				return m
-			}
-			return min
-		}
-
-		findMax := func(max, v float64) float64 {
-			m := v + r.Range
-			if m > max {
-				return m
-			}
-			return max
-		}
-
-		minX = findMin(minX, x)
-		minY = findMin(minY, y)
-		minZ = findMin(minZ, z)
-
-		maxX = findMax(maxX, x)
-		maxY = findMax(maxY, y)
-		maxZ = findMax(maxZ, z)
+	//initialize
+	var pmin loc.Point
+	var pmax loc.Point
+	for i := 0; i < len(ep.anchors[id]); i++ {
+		pmin[i] = ep.anchors[id][i]
+		pmax[i] = pmin[i]
 	}
 
-	p0 := loc.Point{X: minX, Y: minY, Z: minZ}
-	p1 := loc.Point{X: maxX, Y: maxY, Z: maxZ}
-	return loc.Box{P0: p0, P1: p1}
+	for id, r := range report {
+		for i, v := range ep.anchors[id] {
+			min := v - r.Range
+			max := v + r.Range
+			if min < pmin[i] {
+				pmin[i] = min
+			}
+
+			if max > pmax[i] {
+				pmax[i] = max
+			}
+		}
+	}
+
+	return loc.Box{P0: pmin, P1: pmax}
 }
 
-func (ep *EstimatePosition) ComputePosition(report map[uint]state.AnchorReport) (j loc.Point, best float64) {
-	bbox := ep.FindBoundingBox(report)
-	center := bbox.Center()
+func (ep *EstimatePosition) ComputePosition(report map[uint]state.AnchorReport) (j loc.Point, accuracy float64) {
+	box := ep.FindBoundingBox(report)
+	accuracy = box.P0.Distance(box.P1)
+	maxIter := 25
+	id := 0
 
-	return center, 0
+loop:
+	for i := 0; i < maxIter; i++ {
+		s := box.Bisect()
+
+		for i, v := range s {
+			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
+				accuracy = acc
+				id = i
+			}
+
+			if accuracy <= 0.01 { // 1 cm
+				break loop
+			}
+		}
+		box = s[id]
+	}
+
+	return box.Center(), accuracy
 }
