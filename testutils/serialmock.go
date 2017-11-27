@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"bytes"
+	"io"
 )
 
 type SerialMock struct {
@@ -25,6 +26,10 @@ func (sm *SerialMock) Read(data []byte) (int, error) {
 
 func (sm *SerialMock) Write(data []byte) (int, error) {
 	sm.commands = append(sm.commands, data...)
+
+	if sm.reply.Len() == 0 {
+		return 0, io.ErrShortWrite
+	}
 
 	return len(data), nil
 }

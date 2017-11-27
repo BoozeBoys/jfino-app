@@ -3,6 +3,7 @@ package commander_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/BoozeBoys/jfino-app/commander"
@@ -20,6 +21,8 @@ func TestPower(t *testing.T) {
 		{[][]byte{[]byte("OK")}, false, nil, []byte("POWER 0")},
 		{[][]byte{[]byte("ERR")}, true, commander.Error, []byte("POWER 1")},
 		{[][]byte{[]byte("ERR")}, false, commander.Error, []byte("POWER 0")},
+		{[][]byte{}, true, io.ErrShortWrite, []byte("POWER 1")},
+		{[][]byte{}, false, io.ErrShortWrite, []byte("POWER 0")},
 	}
 
 	for _, tc := range cases {
@@ -60,6 +63,8 @@ func TestSpeed(t *testing.T) {
 		{[][]byte{[]byte("ERR")}, 255, 255, commander.Error, []byte("SPEED 255 255")},
 		{[][]byte{[]byte("ERR")}, -255, -255, commander.Error, []byte("SPEED -255 -255")},
 		{[][]byte{[]byte("ERR")}, 0, 0, commander.Error, []byte("SPEED 0 0")},
+		{[][]byte{}, 255, 255, io.ErrShortWrite, []byte("SPEED 255 255")},
+		{[][]byte{}, 255, 255, io.ErrShortWrite, []byte("SPEED 255 255")},
 	}
 
 	for _, tc := range cases {
@@ -101,6 +106,7 @@ func TestStatus(t *testing.T) {
 			[]byte("OK"),
 		}, nil, []byte("STATUS")},
 		{[][]byte{[]byte("ERR")}, commander.Error, []byte("STATUS")},
+		{[][]byte{}, io.ErrShortWrite, []byte("STATUS")},
 	}
 
 	for _, tc := range cases {
@@ -115,10 +121,6 @@ func TestStatus(t *testing.T) {
 
 			if err != tc.err {
 				tt.Errorf("want: %v got: %v\n", tc.err, err)
-			}
-
-			if len(tc.reply) != len(reply)+1 {
-				tt.Errorf("want: %d got: %d\n", len(tc.reply), len(reply))
 			}
 
 			for n, line := range reply {
