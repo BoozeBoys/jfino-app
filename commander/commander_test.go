@@ -2,6 +2,7 @@ package commander_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/BoozeBoys/jfino-app/commander"
@@ -22,21 +23,26 @@ func TestPower(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		rw := testutils.NewSerialMock(tc.reply)
-		c := commander.New(rw)
+		tc := tc
+		t.Run(fmt.Sprintf("on=%v error=%v", tc.on, tc.err != nil), func(tt *testing.T) {
+			tt.Parallel()
 
-		err := c.Power(tc.on)
+			rw := testutils.NewSerialMock(tc.reply)
+			c := commander.New(rw)
 
-		if err != tc.err {
-			t.Errorf("want: %v got: %v\n", tc.err, err)
-		}
+			err := c.Power(tc.on)
 
-		got := rw.LastCommand()
-		want := tc.want
+			if err != tc.err {
+				tt.Errorf("want: %v got: %v\n", tc.err, err)
+			}
 
-		if !bytes.Equal(want, got) {
-			t.Errorf("want: %s, got: %s\n", want, got)
-		}
+			got := rw.LastCommand()
+			want := tc.want
+
+			if !bytes.Equal(want, got) {
+				tt.Errorf("want: %s, got: %s\n", want, got)
+			}
+		})
 	}
 }
 
@@ -57,21 +63,26 @@ func TestSpeed(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		rw := testutils.NewSerialMock(tc.reply)
-		c := commander.New(rw)
+		tc := tc
+		t.Run(fmt.Sprintf("speed1=%v speed2=%v err=%v", tc.speed1, tc.speed2, tc.err != nil), func(tt *testing.T) {
+			tt.Parallel()
 
-		err := c.Speed(tc.speed1, tc.speed2)
+			rw := testutils.NewSerialMock(tc.reply)
+			c := commander.New(rw)
 
-		if err != tc.err {
-			t.Errorf("want: %v got: %v\n", tc.err, err)
-		}
+			err := c.Speed(tc.speed1, tc.speed2)
 
-		got := rw.LastCommand()
-		want := tc.want
+			if err != tc.err {
+				tt.Errorf("want: %v got: %v\n", tc.err, err)
+			}
 
-		if !bytes.Equal(want, got) {
-			t.Errorf("want: %s, got: %s\n", want, got)
-		}
+			got := rw.LastCommand()
+			want := tc.want
+
+			if !bytes.Equal(want, got) {
+				tt.Errorf("want: %s, got: %s\n", want, got)
+			}
+		})
 	}
 }
 
@@ -93,30 +104,35 @@ func TestStatus(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		rw := testutils.NewSerialMock(tc.reply)
-		c := commander.New(rw)
+		tc := tc
+		t.Run(fmt.Sprintf("err=%v", tc.err != nil), func(tt *testing.T) {
+			tt.Parallel()
 
-		reply, err := c.Status()
+			rw := testutils.NewSerialMock(tc.reply)
+			c := commander.New(rw)
 
-		if err != tc.err {
-			t.Errorf("want: %v got: %v\n", tc.err, err)
-		}
+			reply, err := c.Status()
 
-		if len(tc.reply) != len(reply)+1 {
-			t.Errorf("want: %d got: %d\n", len(tc.reply), len(reply))
-		}
-
-		for n, line := range reply {
-			if !bytes.Equal(tc.reply[n], line) {
-				t.Errorf("want: %s, got: %s\n", tc.reply[n], line)
+			if err != tc.err {
+				tt.Errorf("want: %v got: %v\n", tc.err, err)
 			}
-		}
 
-		got := rw.LastCommand()
-		want := tc.want
+			if len(tc.reply) != len(reply)+1 {
+				tt.Errorf("want: %d got: %d\n", len(tc.reply), len(reply))
+			}
 
-		if !bytes.Equal(want, got) {
-			t.Errorf("want: %s, got: %s\n", want, got)
-		}
+			for n, line := range reply {
+				if !bytes.Equal(tc.reply[n], line) {
+					tt.Errorf("want: %s, got: %s\n", tc.reply[n], line)
+				}
+			}
+
+			got := rw.LastCommand()
+			want := tc.want
+
+			if !bytes.Equal(want, got) {
+				tt.Errorf("want: %s, got: %s\n", want, got)
+			}
+		})
 	}
 }

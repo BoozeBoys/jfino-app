@@ -28,8 +28,6 @@ func TestSendCommands(t *testing.T) {
 	}
 
 	t.Run("power", func(t *testing.T) {
-		t.Parallel()
-
 		want := fmt.Sprintf("%v", testutils.CommandDescription{Name: "power", Args: []interface{}{true}})
 		got := fmt.Sprintf("%v", mc.Commands[0])
 
@@ -39,8 +37,6 @@ func TestSendCommands(t *testing.T) {
 	})
 
 	t.Run("speed", func(t *testing.T) {
-		t.Parallel()
-
 		want := fmt.Sprintf("%v", testutils.CommandDescription{Name: "speed", Args: []interface{}{255, 255}})
 		got := fmt.Sprintf("%v", mc.Commands[1])
 
@@ -51,32 +47,31 @@ func TestSendCommands(t *testing.T) {
 }
 
 func TestSendCommandsError(t *testing.T) {
-	s := new(state.State)
+	cases := []struct {
+		powerErr error
+		speedErr error
+	}{
+		{errors.New("error"), nil},
+		{nil, errors.New("error")},
+	}
 
-	mc := new(testutils.CommanderMock)
-	task := tasks.NewSendCommands(mc)
+	for _, tc := range cases {
+		tc := tc
+		t.Run(fmt.Sprintf("powerErr=%v speedErr=%v", tc.powerErr != nil, tc.speedErr != nil), func(tt *testing.T) {
+			tt.Parallel()
 
-	t.Run("power", func(t *testing.T) {
-		t.Parallel()
+			s := new(state.State)
 
-		mc.SetError("power", errors.New("error"))
-		mc.SetError("speed", nil)
+			mc := new(testutils.CommanderMock)
+			task := tasks.NewSendCommands(mc)
 
-		err := task.Perform(s)
-		if err == nil {
-			t.Errorf("want %v, got: %v", errors.New("error"), err)
-		}
-	})
+			mc.SetError("power", tc.powerErr)
+			mc.SetError("speed", tc.speedErr)
 
-	t.Run("speed", func(t *testing.T) {
-		t.Parallel()
-
-		mc.SetError("power", nil)
-		mc.SetError("speed", errors.New("error"))
-
-		err := task.Perform(s)
-		if err == nil {
-			t.Errorf("want %v, got: %v", errors.New("error"), err)
-		}
-	})
+			err := task.Perform(s)
+			if err == nil {
+				tt.Errorf("want %v, got: %v", errors.New("error"), err)
+			}
+		})
+	}
 }
