@@ -53,36 +53,42 @@ func TestPointIsEqual(t *testing.T) {
 
 func TestPointDistance(t *testing.T) {
 	p1 := loc.Point{0, 0, 0}
-	p2 := loc.Point{1, 1, 1}
+	p2 := loc.Point{4, 5, 9}
 
-	if math.Abs(p1.Distance(p2)-math.Sqrt(3)) > 1e-6 {
+	if math.Abs(p1.Distance(p2)-math.Sqrt(122)) > 1e-6 {
 		t.FailNow()
 	}
 
-	if math.Abs(p2.Distance(p1)-math.Sqrt(3)) > 1e-6 {
+	if math.Abs(p2.Distance(p1)-math.Sqrt(122)) > 1e-6 {
 		t.FailNow()
 	}
 
-	p3 := loc.Point{-1, -1, -1}
+	p3 := loc.Point{-4, -5, -9}
 
 	if math.Abs(p2.Distance(p1)-p1.Distance(p3)) > 1e-6 {
 		t.FailNow()
 	}
 
-	p4 := loc.Point{-1, 1, -1}
+	p4 := loc.Point{-4, 5, -9}
 
-	if math.Abs(p2.Distance(p4)-math.Sqrt(8)) > 1e-6 {
+	if math.Abs(p2.Distance(p4)-math.Sqrt(388)) > 1e-6 {
+		t.FailNow()
+	}
+
+	p5 := loc.Point{423.43, 3455.3, -9e2}
+
+	if math.Abs(p2.Distance(p5)-3592.59970146) > 1e-6 {
 		t.FailNow()
 	}
 }
 
 func TestBoxCenter(t *testing.T) {
-	p0 := loc.Point{0, 0, 0}
+	p0 := loc.Point{-12, 3, 4}
 	p1 := loc.Point{112, 1e23, 1e-12}
 	b := loc.Box{p0, p1}
 
-	if pc := b.Center(); !pc.IsEqual(loc.Point{56, 5e22, 5e-13}) {
-		t.FailNow()
+	if pc := b.Center(); !pc.IsEqual(loc.Point{50, 5e22, 2 + 5e-13}) {
+		t.Fatalf("%v", b.Center)
 	}
 }
 
@@ -149,19 +155,19 @@ func TestBoxisEqual(t *testing.T) {
 }
 
 func TestBoxBisect(t *testing.T) {
-	p0 := loc.Point{0, 0, 0}
+	p0 := loc.Point{-3, -2, -1}
 	p1 := loc.Point{8, 8, 8}
 	b := loc.Box{p0, p1}
 
 	bcheck := []loc.Box{
-		loc.Box{loc.Point{0, 0, 0}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{0, 8, 0}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{8, 8, 0}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{8, 0, 0}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{0, 0, 8}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{0, 8, 8}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{8, 8, 8}, loc.Point{4, 4, 4}},
-		loc.Box{loc.Point{8, 0, 8}, loc.Point{4, 4, 4}},
+		loc.Box{loc.Point{-3, -2, -1}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{-3, 8, -1}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{8, 8, -1}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{8, -2, -1}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{-3, -2, 8}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{-3, 8, 8}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{8, 8, 8}, loc.Point{2.5, 3, 3.5}},
+		loc.Box{loc.Point{8, -2, 8}, loc.Point{2.5, 3, 3.5}},
 	}
 
 	s := b.Bisect()
