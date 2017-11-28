@@ -88,7 +88,7 @@ func TestBoxCenter(t *testing.T) {
 	b := loc.Box{p0, p1}
 
 	if pc := b.Center(); !pc.IsEqual(loc.Point{50, 5e22, 2 + 5e-13}) {
-		t.Fatalf("%v", b.Center)
+		t.Fatal(b.Center())
 	}
 }
 
