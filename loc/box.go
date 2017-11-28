@@ -2,6 +2,15 @@ package loc
 
 type Box [2]Point
 
+func NewBox(center, size Point) Box {
+	var p0, p1 Point
+	for i := range center {
+		p0[i] = center[i] - size[i]
+		p1[i] = center[i] + size[i]
+	}
+	return Box{p0, p1}
+}
+
 func (b *Box) Center() Point {
 	var a Point
 	for i := range a {
@@ -9,6 +18,15 @@ func (b *Box) Center() Point {
 	}
 
 	return a
+}
+
+func (b *Box) Expand(scale float64) Box {
+	var size Point
+	c := b.Center()
+	for i := range b[0] {
+		size[i] = (b[0][i] - c[i]) * scale
+	}
+	return NewBox(c, size)
 }
 
 func (b *Box) transposeCoord(coord uint) Box {
