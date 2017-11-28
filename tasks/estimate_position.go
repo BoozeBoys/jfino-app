@@ -87,7 +87,7 @@ loop:
 		for _, v := range s {
 			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
 				accuracy = acc
-				box = v.Expand(1.525)
+				box = v.Expand(1.55)
 				if accuracy <= 0.005*math.Sqrt(3)/3 { // +/-0.5 cm
 					break loop
 				}
