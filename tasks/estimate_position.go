@@ -9,10 +9,10 @@ import (
 )
 
 type EstimatePosition struct {
-	anchors map[uint]loc.Point // anchors location
+	anchors map[int]loc.Point // anchors location
 }
 
-func NewEstimatePosition(anchors map[uint]loc.Point) *EstimatePosition {
+func NewEstimatePosition(anchors map[int]loc.Point) *EstimatePosition {
 	return &EstimatePosition{anchors: anchors}
 }
 
@@ -25,7 +25,7 @@ func (ep *EstimatePosition) Perform(s *state.State) error {
  * the measured anchor ranges and the distance from the point j to each anchor.
  * TODO: use anchor power report to weight the mean computation.
  */
-func (ep *EstimatePosition) ErrorRms(report map[uint]state.AnchorReport, j loc.Point) float64 {
+func (ep *EstimatePosition) ErrorRms(report map[int]state.AnchorReport, j loc.Point) float64 {
 	e := 0.0
 
 	for id, r := range report {
@@ -40,9 +40,9 @@ func (ep *EstimatePosition) ErrorRms(report map[uint]state.AnchorReport, j loc.P
  * Given the anchors position and range reports, compute the maximum box where
  * we need to search for the robot position.
  */
-func (ep *EstimatePosition) FindBoundingBox(report map[uint]state.AnchorReport) loc.Box {
+func (ep *EstimatePosition) FindBoundingBox(report map[int]state.AnchorReport) loc.Box {
 	//find working space
-	id := uint(0)
+	id := 0
 	//find a valid anchor id
 	for k := range report {
 		id = k
@@ -75,20 +75,20 @@ func (ep *EstimatePosition) FindBoundingBox(report map[uint]state.AnchorReport) 
 	return loc.Box{pmin, pmax}
 }
 
-func (ep *EstimatePosition) ComputePosition(report map[uint]state.AnchorReport) (j loc.Point, accuracy float64) {
+func (ep *EstimatePosition) ComputePosition(report map[int]state.AnchorReport) (j loc.Point, accuracy float64) {
 	box := ep.FindBoundingBox(report)
 	accuracy = box[0].Distance(box[1])
-	maxIter := 25
-
+	maxIter := 50
 loop:
 	for i := 0; i < maxIter; i++ {
 		s := box.Bisect()
+		accuracy = box[0].Distance(box[1])
 
 		for _, v := range s {
 			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
 				accuracy = acc
-				box = v
-				if accuracy <= 0.005 { // 0.5 cm
+				box = v.Expand(1.525)
+				if accuracy <= 0.005*math.Sqrt(3)/3 { // +/-0.5 cm
 					break loop
 				}
 			}
