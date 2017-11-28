@@ -112,7 +112,7 @@ func TestComputePosition(t *testing.T) {
 
 		fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, (acc*3)*math.Sqrt(3), p.Distance(j))
 		if p.Distance(j) > err {
-			t.Fatalf("idx %d, j %v, p %v, accuracy rms %f, accuracy +/- %.2 f, actual dist %f", i, j, p, acc, (acc*3)*math.Sqrt(3), p.Distance(j))
+			t.Fatalf("idx %d, j %v, p %v, accuracy rms %f, accuracy +/- %.2f, actual dist %f", i, j, p, acc, (acc*3)*math.Sqrt(3), p.Distance(j))
 		}
 	}
 }
