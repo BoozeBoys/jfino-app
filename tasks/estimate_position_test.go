@@ -90,7 +90,7 @@ func TestComputePosition(t *testing.T) {
 
 	r := rand.New(rand.NewSource(0))
 	ep := tasks.NewEstimatePosition(anchors)
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < 10000; i++ {
 		ranges := make(map[int]state.AnchorReport)
 		x := r.Float64() * 100
 		y := r.Float64() * 100
