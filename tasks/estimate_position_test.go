@@ -90,7 +90,7 @@ func TestComputePosition(t *testing.T) {
 
 	r := rand.New(rand.NewSource(0))
 	ep := tasks.NewEstimatePosition(anchors)
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000000; i++ {
 		ranges := make(map[int]state.AnchorReport)
 		x := r.Float64() * 100
 		y := r.Float64() * 100
@@ -112,7 +112,7 @@ func TestComputePosition(t *testing.T) {
 
 		fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, (acc*3)*math.Sqrt(3), p.Distance(j))
 		if p.Distance(j) > err {
-			t.Fatalf("idx %d, j %v, p %v, acc %f, dist %f", i, j, p, acc, p.Distance(j))
+			t.Fatalf("idx %d, j %v, p %v, accuracy rms %f, accuracy +/- %.2 f, actual dist %f", i, j, p, acc, (acc*3)*math.Sqrt(3), p.Distance(j))
 		}
 	}
 }
