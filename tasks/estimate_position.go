@@ -76,11 +76,13 @@ func (ep *EstimatePosition) FindBoundingBox(report map[int]state.AnchorReport) l
 }
 
 const minAccuracy = loc.Meters(0.002886751346) // +/-0.5 cm
+const expandFactor = 1.55
+const maxIter = 50
 
 func (ep *EstimatePosition) ComputePosition(report map[int]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
 	box := ep.FindBoundingBox(report)
 	accuracy = box[0].Distance(box[1])
-	maxIter := 50
+
 loop:
 	for i := 0; i < maxIter; i++ {
 		s := box.Bisect()
@@ -89,7 +91,7 @@ loop:
 		for _, v := range s {
 			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
 				accuracy = acc
-				box = v.Expand(1.55)
+				box = v.Expand(expandFactor)
 				if accuracy <= minAccuracy {
 					break loop
 				}
