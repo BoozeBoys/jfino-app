@@ -4,13 +4,15 @@ import (
 	"math"
 )
 
-type Point [3]float64 // x, y, z coords in meters
+type Meters float64
+
+type Point [3]Meters // x, y, z coords in meters
 
 /*IsEqual returns true if two points are the same */
 func (p *Point) IsEqual(p1 Point) bool {
 	eps := 1e-64
 	for i := range p {
-		if math.Abs(p[i]-p1[i]) > eps {
+		if math.Abs(float64(p[i]-p1[i])) > eps {
 			return false
 		}
 	}
@@ -19,11 +21,11 @@ func (p *Point) IsEqual(p1 Point) bool {
 }
 
 /*Distance computes the distance between two points */
-func (p *Point) Distance(p1 Point) float64 {
+func (p *Point) Distance(p1 Point) Meters {
 	sum := 0.0
 	for i := range p {
-		sum += math.Pow(p1[i]-p[i], 2)
+		sum += math.Pow(float64(p1[i]-p[i]), 2)
 	}
 
-	return math.Sqrt(sum)
+	return Meters(math.Sqrt(sum))
 }

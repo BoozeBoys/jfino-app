@@ -24,7 +24,7 @@ func (b *Box) Expand(scale float64) Box {
 	var size Point
 	c := b.Center()
 	for i := range b[0] {
-		size[i] = (b[0][i] - c[i]) * scale
+		size[i] = (b[0][i] - c[i]) * Meters(scale)
 	}
 	return NewBox(c, size)
 }

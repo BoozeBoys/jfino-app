@@ -25,15 +25,15 @@ func (ep *EstimatePosition) Perform(s *state.State) error {
  * the measured anchor ranges and the distance from the point j to each anchor.
  * TODO: use anchor power report to weight the mean computation.
  */
-func (ep *EstimatePosition) ErrorRms(report map[int]state.AnchorReport, j loc.Point) float64 {
+func (ep *EstimatePosition) ErrorRms(report map[int]state.AnchorReport, j loc.Point) loc.Meters {
 	e := 0.0
 
 	for id, r := range report {
-		dist := j.Distance(ep.anchors[id])
-		e += math.Pow(dist-r.Range, 2)
+		dist := float64(j.Distance(ep.anchors[id]))
+		e += math.Pow(dist-float64(r.Range), 2)
 	}
 
-	return math.Sqrt(e / float64(len(report)))
+	return loc.Meters(math.Sqrt(e / float64(len(report))))
 }
 
 /*FindBoundingBox finds the box that contains the target point we are looking for.
@@ -75,7 +75,9 @@ func (ep *EstimatePosition) FindBoundingBox(report map[int]state.AnchorReport) l
 	return loc.Box{pmin, pmax}
 }
 
-func (ep *EstimatePosition) ComputePosition(report map[int]state.AnchorReport) (j loc.Point, accuracy float64) {
+const minAccuracy = loc.Meters(0.002886751346) // +/-0.5 cm
+
+func (ep *EstimatePosition) ComputePosition(report map[int]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
 	box := ep.FindBoundingBox(report)
 	accuracy = box[0].Distance(box[1])
 	maxIter := 50
@@ -88,7 +90,7 @@ loop:
 			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
 				accuracy = acc
 				box = v.Expand(1.55)
-				if accuracy <= 0.005*math.Sqrt(3)/3 { // +/-0.5 cm
+				if accuracy <= minAccuracy {
 					break loop
 				}
 			}
