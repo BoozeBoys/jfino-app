@@ -55,29 +55,29 @@ func TestPointDistance(t *testing.T) {
 	p1 := loc.Point{0, 0, 0}
 	p2 := loc.Point{4, 5, 9}
 
-	if math.Abs(p1.Distance(p2)-math.Sqrt(122)) > 1e-6 {
+	if math.Abs(float64(p1.Distance(p2))-math.Sqrt(122)) > 1e-6 {
 		t.FailNow()
 	}
 
-	if math.Abs(p2.Distance(p1)-math.Sqrt(122)) > 1e-6 {
+	if math.Abs(float64(p2.Distance(p1))-math.Sqrt(122)) > 1e-6 {
 		t.FailNow()
 	}
 
 	p3 := loc.Point{-4, -5, -9}
 
-	if math.Abs(p2.Distance(p1)-p1.Distance(p3)) > 1e-6 {
+	if math.Abs(float64(p2.Distance(p1)-p1.Distance(p3))) > 1e-6 {
 		t.FailNow()
 	}
 
 	p4 := loc.Point{-4, 5, -9}
 
-	if math.Abs(p2.Distance(p4)-math.Sqrt(388)) > 1e-6 {
+	if math.Abs(float64(p2.Distance(p4))-math.Sqrt(388)) > 1e-6 {
 		t.FailNow()
 	}
 
 	p5 := loc.Point{423.43, 3455.3, -9e2}
 
-	if math.Abs(p2.Distance(p5)-3592.59970146) > 1e-6 {
+	if math.Abs(float64(p2.Distance(p5))-3592.59970146) > 1e-6 {
 		t.FailNow()
 	}
 }

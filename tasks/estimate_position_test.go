@@ -19,7 +19,7 @@ func TestErrorRms(t *testing.T) {
 	ranges[2] = state.AnchorReport{Range: 1}
 	ranges[3] = state.AnchorReport{Range: 1}
 
-	d := 1.0
+	d := loc.Meters(1.0)
 	anchors := make(map[int]loc.Point)
 	assign := func() {
 		anchors[0] = loc.Point{-d, 0, 0}
@@ -32,20 +32,20 @@ func TestErrorRms(t *testing.T) {
 	ep := tasks.NewEstimatePosition(anchors)
 
 	rms := ep.ErrorRms(ranges, loc.Point{0, 0})
-	if math.Abs(rms-0) > 1e-6 {
+	if math.Abs(float64(rms)-0) > 1e-6 {
 		t.Fatalf("rms: %f", rms)
 	}
 
 	rms = ep.ErrorRms(ranges, loc.Point{1, 1})
 	res := math.Sqrt((math.Pow(math.Sqrt(1+4)-1, 2) * 2) / 4)
-	if math.Abs(rms-res) > 1e-6 {
+	if math.Abs(float64(rms)-res) > 1e-6 {
 		t.Fatalf("rms: %f", rms)
 	}
 
 	d = 3.0
 	assign()
 	rms = ep.ErrorRms(ranges, loc.Point{0, 0})
-	if math.Abs(rms-2) > 1e-6 {
+	if math.Abs(float64(rms)-2) > 1e-6 {
 		t.Fatalf("rms: %f", rms)
 	}
 }
@@ -57,7 +57,7 @@ func TestFindBoundingBox(t *testing.T) {
 	ranges[2] = state.AnchorReport{Range: 10}
 	ranges[3] = state.AnchorReport{Range: 10}
 
-	d := 1.0
+	d := loc.Meters(1.0)
 	anchors := make(map[int]loc.Point)
 	assign := func() {
 		anchors[0] = loc.Point{-d, 0, 1}
@@ -92,14 +92,14 @@ func TestComputePosition(t *testing.T) {
 	ep := tasks.NewEstimatePosition(anchors)
 	for i := 0; i < 10000; i++ {
 		ranges := make(map[int]state.AnchorReport)
-		x := r.Float64() * 100
-		y := r.Float64() * 100
-		z := r.Float64() * 100
+		x := loc.Meters(r.Float64() * 100)
+		y := loc.Meters(r.Float64() * 100)
+		z := loc.Meters(r.Float64() * 100)
 		j := loc.Point{x, y, z}
 
-		err := 0.2 //m
+		err := loc.Meters(0.2)
 		for i, a := range anchors {
-			ranges[i] = state.AnchorReport{Range: j.Distance(a) + r.Float64()*err - err/2}
+			ranges[i] = state.AnchorReport{Range: j.Distance(a) + loc.Meters(r.Float64())*err - err/2}
 		}
 
 		p, acc := ep.ComputePosition(ranges)
@@ -107,12 +107,12 @@ func TestComputePosition(t *testing.T) {
 		if i%100 == 0 {
 			fmt.Println(i)
 		}
-		err = math.Max(err, 0.01)
+		err = loc.Meters(math.Max(float64(err), 0.01))
 		err *= 2
 
-		fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, (acc*3)*math.Sqrt(3), p.Distance(j))
+		fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, float64(acc*3)*math.Sqrt(3), p.Distance(j))
 		if p.Distance(j) > err {
-			t.Fatalf("idx %d, j %v, p %v, accuracy rms %f, accuracy +/- %.2f, actual dist %f", i, j, p, acc, (acc*3)*math.Sqrt(3), p.Distance(j))
+			t.Fatalf("idx %d, j %v, p %v, accuracy rms %f, accuracy +/- %.2f, actual dist %f", i, j, p, acc, float64(acc*3)*math.Sqrt(3), p.Distance(j))
 		}
 	}
 }

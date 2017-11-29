@@ -1,13 +1,17 @@
 package state
 
+import (
+	"github.com/BoozeBoys/jfino-app/loc"
+)
+
 type Motor struct {
 	Speed   int
 	Current int
 }
 
 type AnchorReport struct {
-	Range float64 // m
-	Power int     // dBm
+	Range loc.Meters // m
+	Power int        // dBm
 }
 
 type State struct {
