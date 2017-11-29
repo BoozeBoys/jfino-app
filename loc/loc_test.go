@@ -92,6 +92,69 @@ func TestBoxCenter(t *testing.T) {
 	}
 }
 
+func TestNewBox(t *testing.T) {
+	p0 := loc.Point{0, 0, 0}
+	size := loc.Point{1, 1, 1}
+	b := loc.NewBox(p0, size)
+	check := loc.Box{loc.Point{-1, -1, -1}, loc.Point{1, 1, 1}}
+
+	if !b.IsEqual(check) {
+		t.Fatal("WANTED:", check, "GOT:", b)
+	}
+
+	p0 = loc.Point{10, 20, 30}
+	size = loc.Point{1, 1, 1}
+	b = loc.NewBox(p0, size)
+	check = loc.Box{loc.Point{9, 19, 29}, loc.Point{11, 21, 31}}
+
+	if !b.IsEqual(check) {
+		t.Fatal("WANTED:", check, "GOT:", b)
+	}
+
+	p0 = loc.Point{12321, 123123, 3222}
+	size = loc.Point{34534, 6654, 6544}
+	b = loc.NewBox(p0, size)
+	check = loc.Box{loc.Point{46855, 129777, 9766}, loc.Point{-22213, 116469, -3322}}
+
+	if !b.IsEqual(check) {
+		t.Fatal("WANTED:", check, "GOT:", b)
+	}
+}
+
+func TestBoxExpand(t *testing.T) {
+	b := loc.Box{loc.Point{-1, -1, -1}, loc.Point{1, 1, 1}}
+	b = b.Expand(10)
+	check := loc.Box{loc.Point{-10, -10, -10}, loc.Point{10, 10, 10}}
+	if !b.IsEqual(check) {
+		t.Fatal("WANTED:", check, "GOT:", b)
+	}
+	c := loc.Point{0, 0, 0}
+	if p := b.Center(); !p.IsEqual(c) {
+		t.Fatal("WANTED:", c, "GOT:", p)
+	}
+
+	b = b.Expand(0.1)
+	check = loc.Box{loc.Point{-1, -1, -1}, loc.Point{1, 1, 1}}
+	if !b.IsEqual(check) {
+		t.Fatal("WANTED:", check, "GOT:", b)
+	}
+	if p := b.Center(); !p.IsEqual(c) {
+		t.Fatal("WANTED:", c, "GOT:", p)
+	}
+
+	b = loc.Box{loc.Point{10, 10, 10}, loc.Point{20, 20, 20}}
+	b = b.Expand(10)
+	check = loc.Box{loc.Point{-35, -35, -35}, loc.Point{65, 65, 65}}
+	if !b.IsEqual(check) {
+		t.Fatal("WANTED:", check, "GOT:", b)
+	}
+
+	c = loc.Point{15, 15, 15}
+	if p := b.Center(); !p.IsEqual(c) {
+		t.Fatal("WANTED:", c, "GOT:", p)
+	}
+}
+
 func TestBoxTranspose(t *testing.T) {
 	b := loc.Box{loc.Point{0, 0, 0}, loc.Point{4, 4, 4}}
 
