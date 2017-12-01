@@ -17,15 +17,18 @@ func NewEstimatePosition(anchors map[int]loc.Point) *EstimatePosition {
 }
 
 func (ep *EstimatePosition) Perform(s *state.State) error {
-
+	box := ep.FindBoundingBox(s.RangeReport)
+	p, acc := ep.ComputePosition(box, s.RangeReport)
+	s.CurrentPosition = p
+	s.PositionAccuracy = acc
 	return nil
 }
 
-/*ErrorRms gives the Root Mean Square of the differences between
+/*ErrorPtoP gives the Peak-to-Peak (+/-) error between
  * the measured anchor ranges and the distance from the point j to each anchor.
  * TODO: use anchor power report to weight the mean computation.
  */
-func (ep *EstimatePosition) ErrorRms(report map[int]state.AnchorReport, j loc.Point) loc.Meters {
+func (ep *EstimatePosition) ErrorPtoP(report map[int]state.AnchorReport, j loc.Point) loc.Meters {
 	e := 0.0
 
 	for id, r := range report {
@@ -33,7 +36,8 @@ func (ep *EstimatePosition) ErrorRms(report map[int]state.AnchorReport, j loc.Po
 		e += math.Pow(dist-float64(r.Range), 2)
 	}
 
-	return loc.Meters(math.Sqrt(e / float64(len(report))))
+	// return error as distance +/- from average (stddev *3 which covers 99.7% probability)
+	return loc.Meters(math.Sqrt(e/float64(len(report))) * 3)
 }
 
 /*FindBoundingBox finds the box that contains the target point we are looking for.
@@ -75,12 +79,11 @@ func (ep *EstimatePosition) FindBoundingBox(report map[int]state.AnchorReport) l
 	return loc.Box{pmin, pmax}
 }
 
-const minAccuracy = loc.Meters(0.002886751346) // +/-0.5 cm
+const minAccuracy = loc.Meters(0.005) // +/-0.5 cm
 const expandFactor = 1.55
 const maxIter = 50
 
-func (ep *EstimatePosition) ComputePosition(report map[int]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
-	box := ep.FindBoundingBox(report)
+func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[int]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
 	accuracy = box[0].Distance(box[1])
 
 loop:
@@ -89,7 +92,7 @@ loop:
 		accuracy = box[0].Distance(box[1])
 
 		for _, v := range s {
-			if acc := ep.ErrorRms(report, v.Center()); acc < accuracy {
+			if acc := ep.ErrorPtoP(report, v.Center()); acc < accuracy {
 				accuracy = acc
 				box = v.Expand(expandFactor)
 				if accuracy <= minAccuracy {
