@@ -15,6 +15,9 @@ type AnchorReport struct {
 }
 
 type State struct {
-	Power  bool
-	Motors [2]Motor
+	Power            bool
+	Motors           [2]Motor
+	RangeReport      map[int]AnchorReport
+	CurrentPosition  loc.Point
+	PositionAccuracy loc.Meters
 }

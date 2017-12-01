@@ -73,6 +73,31 @@ func TestUpdateStateCurrent(t *testing.T) {
 	}
 }
 
+func TestUpdateAnchorReport(t *testing.T) {
+	r := new(testutils.StatusReaderMock)
+	r.SetStatus([][]byte{
+		[]byte("ANCHOR 1 12.45 -90"),
+		[]byte("ANCHOR 3 1.66 -75"),
+	})
+
+	s := new(state.State)
+	task := tasks.NewUpdateStatus(r)
+
+	if err := task.Perform(s); err != nil {
+		t.FailNow()
+	}
+
+	check := state.AnchorReport{Range: 12.45, Power: -90}
+	if s.RangeReport[1] != check {
+		t.Errorf("want: %v, got: %v", check, s.RangeReport)
+	}
+
+	check = state.AnchorReport{Range: 1.66, Power: -75}
+	if s.RangeReport[3] != check {
+		t.Errorf("want: %v, got: %v", check, s.RangeReport)
+	}
+}
+
 func TestUpdateStateError(t *testing.T) {
 	r := new(testutils.StatusReaderMock)
 	r.SetError(errors.New("error"))

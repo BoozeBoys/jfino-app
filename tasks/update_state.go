@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strconv"
 
+	"github.com/BoozeBoys/jfino-app/loc"
+
 	"github.com/BoozeBoys/jfino-app/state"
 )
 
@@ -24,6 +26,7 @@ func (c *UpdateState) Perform(s *state.State) error {
 	if err != nil {
 		return err
 	}
+	s.RangeReport = make(map[int]state.AnchorReport)
 
 	for _, line := range lines {
 		tokens := bytes.Split(line, []byte{' '})
@@ -54,6 +57,23 @@ func (c *UpdateState) Perform(s *state.State) error {
 			}
 
 			s.Motors[motorID].Current = current
+		case "ANCHOR":
+			id, err := strconv.Atoi(string(tokens[1]))
+			if err != nil {
+				break
+			}
+
+			rng, err := strconv.ParseFloat(string(tokens[2]), 64)
+			if err != nil {
+				break
+			}
+
+			pwr, err := strconv.Atoi(string(tokens[3]))
+			if err != nil {
+				break
+			}
+
+			s.RangeReport[id] = state.AnchorReport{Range: loc.Meters(rng), Power: pwr}
 		}
 	}
 
