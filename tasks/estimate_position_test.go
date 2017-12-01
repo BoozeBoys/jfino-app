@@ -116,3 +116,34 @@ func TestComputePosition(t *testing.T) {
 		t.Fatalf("want: %v, got %v", float64(cnt)*(1-0.99), errCount)
 	}
 }
+
+func TestEstimatePosition(t *testing.T) {
+	anchors := make(map[int]loc.Point)
+
+	anchors[0] = loc.Point{0, 0, 0}
+	anchors[1] = loc.Point{0, 100, 0}
+	anchors[2] = loc.Point{100, 0, 0}
+	anchors[3] = loc.Point{0, 0, 100}
+	s := new(state.State)
+	task := tasks.NewEstimatePosition(anchors)
+
+	ranges := make(map[int]state.AnchorReport)
+	j := loc.Point{10, -34, 23}
+
+	for i, a := range anchors {
+		ranges[i] = state.AnchorReport{Range: j.Distance(a)}
+	}
+	s.RangeReport = ranges
+
+	if err := task.Perform(s); err != nil {
+		t.FailNow()
+	}
+
+	if s.PositionAccuracy > 0.005 {
+		t.Errorf("want < 0.005, got %v", s.PositionAccuracy)
+	}
+
+	if s.CurrentPosition.Distance(j) > 0.01 {
+		t.Errorf("want %v, got %v", j, s.CurrentPosition)
+	}
+}

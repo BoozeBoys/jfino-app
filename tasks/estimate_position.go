@@ -16,6 +16,10 @@ func NewEstimatePosition(anchors map[int]loc.Point) *EstimatePosition {
 	return &EstimatePosition{anchors: anchors}
 }
 
+/*Perform computes the current position of the robot.
+ * TODO: filter the position, discard wrong positions,
+ * use a smaller box when we have a fix.
+ */
 func (ep *EstimatePosition) Perform(s *state.State) error {
 	box := ep.FindBoundingBox(s.RangeReport)
 	p, acc := ep.ComputePosition(box, s.RangeReport)
