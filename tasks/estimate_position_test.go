@@ -31,21 +31,21 @@ func TestErrorRms(t *testing.T) {
 	assign()
 	ep := tasks.NewEstimatePosition(anchors)
 
-	rms := ep.ErrorRms(ranges, loc.Point{0, 0})
+	rms := ep.ErrorPtoP(ranges, loc.Point{0, 0})
 	if math.Abs(float64(rms)-0) > 1e-6 {
 		t.Fatalf("rms: %f", rms)
 	}
 
-	rms = ep.ErrorRms(ranges, loc.Point{1, 1})
-	res := math.Sqrt((math.Pow(math.Sqrt(1+4)-1, 2) * 2) / 4)
+	rms = ep.ErrorPtoP(ranges, loc.Point{1, 1})
+	res := math.Sqrt((math.Pow(math.Sqrt(1+4)-1, 2)*2)/4) * 3
 	if math.Abs(float64(rms)-res) > 1e-6 {
 		t.Fatalf("rms: %f", rms)
 	}
 
 	d = 3.0
 	assign()
-	rms = ep.ErrorRms(ranges, loc.Point{0, 0})
-	if math.Abs(float64(rms)-2) > 1e-6 {
+	rms = ep.ErrorPtoP(ranges, loc.Point{0, 0})
+	if math.Abs(float64(rms)-6) > 1e-6 {
 		t.Fatalf("rms: %f", rms)
 	}
 }
@@ -90,7 +90,9 @@ func TestComputePosition(t *testing.T) {
 
 	r := rand.New(rand.NewSource(0))
 	ep := tasks.NewEstimatePosition(anchors)
-	for i := 0; i < 10000; i++ {
+	errCount := 0
+	cnt := 10000
+	for i := 0; i < cnt; i++ {
 		ranges := make(map[int]state.AnchorReport)
 		x := loc.Meters(r.Float64() * 100)
 		y := loc.Meters(r.Float64() * 100)
@@ -102,17 +104,15 @@ func TestComputePosition(t *testing.T) {
 			ranges[i] = state.AnchorReport{Range: j.Distance(a) + loc.Meters(r.Float64())*err - err/2}
 		}
 
-		p, acc := ep.ComputePosition(ranges)
+		p, _ := ep.ComputePosition(ep.FindBoundingBox(ranges), ranges)
 
-		if i%100 == 0 {
-			fmt.Println(i)
-		}
-		err = loc.Meters(math.Max(float64(err), 0.01))
-		err *= 2
-
-		fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, float64(acc*3)*math.Sqrt(3), p.Distance(j))
+		//fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, float64(acc), p.Distance(j))
 		if p.Distance(j) > err {
-			t.Fatalf("idx %d, j %v, p %v, accuracy rms %f, accuracy +/- %.2f, actual dist %f", i, j, p, acc, float64(acc*3)*math.Sqrt(3), p.Distance(j))
+			errCount++
+			fmt.Println("Error:", errCount)
 		}
+	}
+	if errCount > int(float64(cnt)*(1-0.99)) {
+		t.Fatalf("want: %v, got %v", float64(cnt)*(1-0.99), errCount)
 	}
 }
