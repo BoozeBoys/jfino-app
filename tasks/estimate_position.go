@@ -88,7 +88,6 @@ const expandFactor = 1.55
 const maxIter = 50
 
 func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[int]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
-	accuracy = box[0].Distance(box[1])
 
 loop:
 	for i := 0; i < maxIter; i++ {
