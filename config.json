@@ -1,0 +1,8 @@
+{
+    "SerialDevice": "/dev/tty.usbserial-A900adW5",
+    "BaudRate": 115200,
+    "Anchors": {
+        "1": [1, 2, 3],
+        "2": [4, 5, 6]
+    }
+}
