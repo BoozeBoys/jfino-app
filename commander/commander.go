@@ -24,6 +24,19 @@ func New(rw io.ReadWriter) *Commander {
 	}
 }
 
+func (c *Commander) WaitHelo() error {
+	line, isPrefix, err := c.rw.ReadLine()
+	if err != nil {
+		return err
+	}
+
+	if isPrefix || !bytes.Equal(line, []byte("HELO")) {
+		return Error
+	}
+
+	return nil
+}
+
 func (c *Commander) Power(on bool) error {
 	var value int
 	if on {
