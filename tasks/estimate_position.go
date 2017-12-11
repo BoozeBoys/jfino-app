@@ -9,10 +9,10 @@ import (
 )
 
 type EstimatePosition struct {
-	anchors map[int]loc.Point // anchors location
+	anchors map[string]loc.Point // anchors location
 }
 
-func NewEstimatePosition(anchors map[int]loc.Point) *EstimatePosition {
+func NewEstimatePosition(anchors map[string]loc.Point) *EstimatePosition {
 	return &EstimatePosition{anchors: anchors}
 }
 
@@ -32,7 +32,7 @@ func (ep *EstimatePosition) Perform(s *state.State) error {
  * the measured anchor ranges and the distance from the point j to each anchor.
  * TODO: use anchor power report to weight the mean computation.
  */
-func (ep *EstimatePosition) ErrorPtoP(report map[int]state.AnchorReport, j loc.Point) loc.Meters {
+func (ep *EstimatePosition) ErrorPtoP(report map[string]state.AnchorReport, j loc.Point) loc.Meters {
 	e := 0.0
 
 	for id, r := range report {
@@ -48,9 +48,9 @@ func (ep *EstimatePosition) ErrorPtoP(report map[int]state.AnchorReport, j loc.P
  * Given the anchors position and range reports, compute the maximum box where
  * we need to search for the robot position.
  */
-func (ep *EstimatePosition) FindBoundingBox(report map[int]state.AnchorReport) loc.Box {
+func (ep *EstimatePosition) FindBoundingBox(report map[string]state.AnchorReport) loc.Box {
 	//find working space
-	id := 0
+	id := ""
 	//find a valid anchor id
 	for k := range report {
 		id = k
@@ -87,7 +87,7 @@ const minAccuracy = loc.Meters(0.005) // +/-0.5 cm
 const expandFactor = 1.55
 const maxIter = 50
 
-func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[int]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
+func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[string]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
 
 loop:
 	for i := 0; i < maxIter; i++ {

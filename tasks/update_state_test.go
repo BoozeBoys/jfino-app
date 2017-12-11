@@ -88,12 +88,12 @@ func TestUpdateAnchorReport(t *testing.T) {
 	}
 
 	check := state.AnchorReport{Range: 12.45, Power: -90}
-	if s.RangeReport[1] != check {
+	if s.RangeReport["1"] != check {
 		t.Errorf("want: %v, got: %v", check, s.RangeReport)
 	}
 
 	check = state.AnchorReport{Range: 1.66, Power: -75}
-	if s.RangeReport[3] != check {
+	if s.RangeReport["3"] != check {
 		t.Errorf("want: %v, got: %v", check, s.RangeReport)
 	}
 }

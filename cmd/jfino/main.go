@@ -20,7 +20,7 @@ import (
 type Config struct {
 	SerialDevice string
 	BaudRate     int
-	Anchors      map[int]loc.Point
+	Anchors      map[string]loc.Point
 }
 
 func (c *Config) String() string {

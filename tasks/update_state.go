@@ -26,7 +26,7 @@ func (c *UpdateState) Perform(s *state.State) error {
 	if err != nil {
 		return err
 	}
-	s.RangeReport = make(map[int]state.AnchorReport)
+	s.RangeReport = make(map[string]state.AnchorReport)
 
 	for _, line := range lines {
 		tokens := bytes.Split(line, []byte{' '})
@@ -58,17 +58,14 @@ func (c *UpdateState) Perform(s *state.State) error {
 
 			s.Motors[motorID].Current = current
 		case "ANCHOR":
-			id, err := strconv.Atoi(string(tokens[1]))
-			if err != nil {
-				break
-			}
+			id := string(tokens[1])
 
 			rng, err := strconv.ParseFloat(string(tokens[2]), 64)
 			if err != nil {
 				break
 			}
 
-			pwr, err := strconv.Atoi(string(tokens[3]))
+			pwr, err := strconv.ParseFloat(string(tokens[3]), 64)
 			if err != nil {
 				break
 			}

@@ -13,19 +13,19 @@ import (
 )
 
 func TestErrorRms(t *testing.T) {
-	ranges := make(map[int]state.AnchorReport)
-	ranges[0] = state.AnchorReport{Range: 1}
-	ranges[1] = state.AnchorReport{Range: 1}
-	ranges[2] = state.AnchorReport{Range: 1}
-	ranges[3] = state.AnchorReport{Range: 1}
+	ranges := make(map[string]state.AnchorReport)
+	ranges["0"] = state.AnchorReport{Range: 1}
+	ranges["1"] = state.AnchorReport{Range: 1}
+	ranges["2"] = state.AnchorReport{Range: 1}
+	ranges["3"] = state.AnchorReport{Range: 1}
 
 	d := loc.Meters(1.0)
-	anchors := make(map[int]loc.Point)
+	anchors := make(map[string]loc.Point)
 	assign := func() {
-		anchors[0] = loc.Point{-d, 0, 0}
-		anchors[1] = loc.Point{0, d, 0}
-		anchors[2] = loc.Point{d, 0, 0}
-		anchors[3] = loc.Point{0, -d, 0}
+		anchors["0"] = loc.Point{-d, 0, 0}
+		anchors["1"] = loc.Point{0, d, 0}
+		anchors["2"] = loc.Point{d, 0, 0}
+		anchors["3"] = loc.Point{0, -d, 0}
 	}
 
 	assign()
@@ -51,19 +51,19 @@ func TestErrorRms(t *testing.T) {
 }
 
 func TestFindBoundingBox(t *testing.T) {
-	ranges := make(map[int]state.AnchorReport)
-	ranges[0] = state.AnchorReport{Range: 10}
-	ranges[1] = state.AnchorReport{Range: 10}
-	ranges[2] = state.AnchorReport{Range: 10}
-	ranges[3] = state.AnchorReport{Range: 10}
+	ranges := make(map[string]state.AnchorReport)
+	ranges["0"] = state.AnchorReport{Range: 10}
+	ranges["1"] = state.AnchorReport{Range: 10}
+	ranges["2"] = state.AnchorReport{Range: 10}
+	ranges["3"] = state.AnchorReport{Range: 10}
 
 	d := loc.Meters(1.0)
-	anchors := make(map[int]loc.Point)
+	anchors := make(map[string]loc.Point)
 	assign := func() {
-		anchors[0] = loc.Point{-d, 0, 1}
-		anchors[1] = loc.Point{0, d, 1}
-		anchors[2] = loc.Point{d, 0, 1}
-		anchors[3] = loc.Point{0, -d, 1}
+		anchors["0"] = loc.Point{-d, 0, 1}
+		anchors["1"] = loc.Point{0, d, 1}
+		anchors["2"] = loc.Point{d, 0, 1}
+		anchors["3"] = loc.Point{0, -d, 1}
 	}
 
 	assign()
@@ -81,19 +81,19 @@ func TestFindBoundingBox(t *testing.T) {
 }
 
 func TestComputePosition(t *testing.T) {
-	anchors := make(map[int]loc.Point)
+	anchors := make(map[string]loc.Point)
 
-	anchors[0] = loc.Point{0, 0, 0}
-	anchors[1] = loc.Point{0, 100, 0}
-	anchors[2] = loc.Point{100, 0, 0}
-	anchors[3] = loc.Point{0, 0, 100}
+	anchors["0"] = loc.Point{0, 0, 0}
+	anchors["1"] = loc.Point{0, 100, 0}
+	anchors["2"] = loc.Point{100, 0, 0}
+	anchors["3"] = loc.Point{0, 0, 100}
 
 	r := rand.New(rand.NewSource(0))
 	ep := tasks.NewEstimatePosition(anchors)
 	errCount := 0
 	cnt := 10000
 	for i := 0; i < cnt; i++ {
-		ranges := make(map[int]state.AnchorReport)
+		ranges := make(map[string]state.AnchorReport)
 		x := loc.Meters(r.Float64() * 100)
 		y := loc.Meters(r.Float64() * 100)
 		z := loc.Meters(r.Float64() * 100)
@@ -118,16 +118,16 @@ func TestComputePosition(t *testing.T) {
 }
 
 func TestEstimatePosition(t *testing.T) {
-	anchors := make(map[int]loc.Point)
+	anchors := make(map[string]loc.Point)
 
-	anchors[0] = loc.Point{0, 0, 0}
-	anchors[1] = loc.Point{0, 100, 0}
-	anchors[2] = loc.Point{100, 0, 0}
-	anchors[3] = loc.Point{0, 0, 100}
+	anchors["0"] = loc.Point{0, 0, 0}
+	anchors["1"] = loc.Point{0, 100, 0}
+	anchors["2"] = loc.Point{100, 0, 0}
+	anchors["3"] = loc.Point{0, 0, 100}
 	s := new(state.State)
 	task := tasks.NewEstimatePosition(anchors)
 
-	ranges := make(map[int]state.AnchorReport)
+	ranges := make(map[string]state.AnchorReport)
 	j := loc.Point{10, -34, 23}
 
 	for i, a := range anchors {

@@ -11,13 +11,13 @@ type Motor struct {
 
 type AnchorReport struct {
 	Range loc.Meters // m
-	Power int        // dBm
+	Power float64    // dBm
 }
 
 type State struct {
 	Power            bool
 	Motors           [2]Motor
-	RangeReport      map[int]AnchorReport
+	RangeReport      map[string]AnchorReport
 	CurrentPosition  loc.Point
 	PositionAccuracy loc.Meters
 }
