@@ -1,8 +1,9 @@
 {
-    "SerialDevice": "/dev/tty.usbserial-A900adW5",
+    "SerialDevice": "/dev/tty.usbmodem14141",
     "BaudRate": 115200,
     "Anchors": {
-        "1": [1, 2, 3],
-        "2": [4, 5, 6]
+        "1": {"Loc": [1, 2, 3], "Offset": 0},
+        "2": {"Loc": [4, 5, 6], "Offset": 0},
+        "3": {"Loc": [7, 8, 9], "Offset": 0}
     }
 }

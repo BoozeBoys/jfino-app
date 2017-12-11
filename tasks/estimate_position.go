@@ -8,11 +8,16 @@ import (
 	"github.com/BoozeBoys/jfino-app/state"
 )
 
-type EstimatePosition struct {
-	anchors map[string]loc.Point // anchors location
+type AnchorCfg struct {
+	Loc    loc.Point
+	Offset loc.Meters
 }
 
-func NewEstimatePosition(anchors map[string]loc.Point) *EstimatePosition {
+type EstimatePosition struct {
+	anchors map[string]AnchorCfg // anchors location
+}
+
+func NewEstimatePosition(anchors map[string]AnchorCfg) *EstimatePosition {
 	return &EstimatePosition{anchors: anchors}
 }
 
@@ -36,8 +41,8 @@ func (ep *EstimatePosition) ErrorPtoP(report map[string]state.AnchorReport, j lo
 	e := 0.0
 
 	for id, r := range report {
-		dist := float64(j.Distance(ep.anchors[id]))
-		e += math.Pow(dist-float64(r.Range), 2)
+		dist := float64(j.Distance(ep.anchors[id].Loc))
+		e += math.Pow(dist-float64(r.Range-ep.anchors[id].Offset), 2)
 	}
 
 	// return error as distance +/- from average (stddev *3 which covers 99.7% probability)
@@ -60,14 +65,14 @@ func (ep *EstimatePosition) FindBoundingBox(report map[string]state.AnchorReport
 	//initialize
 	var pmin loc.Point
 	var pmax loc.Point
-	for i, v := range ep.anchors[id] {
+	for i, v := range ep.anchors[id].Loc {
 		pmin[i] = v
 		pmax[i] = pmin[i]
 	}
 
 	//find max points
 	for id, r := range report {
-		for i, v := range ep.anchors[id] {
+		for i, v := range ep.anchors[id].Loc {
 			min := v - r.Range
 			max := v + r.Range
 			if min < pmin[i] {

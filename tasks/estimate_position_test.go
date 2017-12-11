@@ -20,12 +20,12 @@ func TestErrorRms(t *testing.T) {
 	ranges["3"] = state.AnchorReport{Range: 1}
 
 	d := loc.Meters(1.0)
-	anchors := make(map[string]loc.Point)
+	anchors := make(map[string]tasks.AnchorCfg)
 	assign := func() {
-		anchors["0"] = loc.Point{-d, 0, 0}
-		anchors["1"] = loc.Point{0, d, 0}
-		anchors["2"] = loc.Point{d, 0, 0}
-		anchors["3"] = loc.Point{0, -d, 0}
+		anchors["0"] = tasks.AnchorCfg{Loc: loc.Point{-d, 0, 0}, Offset: 0}
+		anchors["1"] = tasks.AnchorCfg{Loc: loc.Point{0, d, 0}, Offset: 0}
+		anchors["2"] = tasks.AnchorCfg{Loc: loc.Point{d, 0, 0}, Offset: 0}
+		anchors["3"] = tasks.AnchorCfg{Loc: loc.Point{0, -d, 0}, Offset: 0}
 	}
 
 	assign()
@@ -58,12 +58,12 @@ func TestFindBoundingBox(t *testing.T) {
 	ranges["3"] = state.AnchorReport{Range: 10}
 
 	d := loc.Meters(1.0)
-	anchors := make(map[string]loc.Point)
+	anchors := make(map[string]tasks.AnchorCfg)
 	assign := func() {
-		anchors["0"] = loc.Point{-d, 0, 1}
-		anchors["1"] = loc.Point{0, d, 1}
-		anchors["2"] = loc.Point{d, 0, 1}
-		anchors["3"] = loc.Point{0, -d, 1}
+		anchors["0"] = tasks.AnchorCfg{Loc: loc.Point{-d, 0, 1}, Offset: 0}
+		anchors["1"] = tasks.AnchorCfg{Loc: loc.Point{0, d, 1}, Offset: 0}
+		anchors["2"] = tasks.AnchorCfg{Loc: loc.Point{d, 0, 1}, Offset: 0}
+		anchors["3"] = tasks.AnchorCfg{Loc: loc.Point{0, -d, 1}, Offset: 0}
 	}
 
 	assign()
@@ -81,12 +81,12 @@ func TestFindBoundingBox(t *testing.T) {
 }
 
 func TestComputePosition(t *testing.T) {
-	anchors := make(map[string]loc.Point)
+	anchors := make(map[string]tasks.AnchorCfg)
 
-	anchors["0"] = loc.Point{0, 0, 0}
-	anchors["1"] = loc.Point{0, 100, 0}
-	anchors["2"] = loc.Point{100, 0, 0}
-	anchors["3"] = loc.Point{0, 0, 100}
+	anchors["0"] = tasks.AnchorCfg{Loc: loc.Point{0, 0, 0}, Offset: 0}
+	anchors["1"] = tasks.AnchorCfg{Loc: loc.Point{0, 100, 0}, Offset: 0}
+	anchors["2"] = tasks.AnchorCfg{Loc: loc.Point{100, 0, 0}, Offset: 0}
+	anchors["3"] = tasks.AnchorCfg{Loc: loc.Point{0, 0, 100}, Offset: 0}
 
 	r := rand.New(rand.NewSource(0))
 	ep := tasks.NewEstimatePosition(anchors)
@@ -101,7 +101,7 @@ func TestComputePosition(t *testing.T) {
 
 		err := loc.Meters(0.2)
 		for i, a := range anchors {
-			ranges[i] = state.AnchorReport{Range: j.Distance(a) + loc.Meters(r.Float64())*err - err/2}
+			ranges[i] = state.AnchorReport{Range: j.Distance(a.Loc) + a.Offset + loc.Meters(r.Float64())*err - err/2}
 		}
 
 		p, _ := ep.ComputePosition(ep.FindBoundingBox(ranges), ranges)
@@ -118,12 +118,12 @@ func TestComputePosition(t *testing.T) {
 }
 
 func TestEstimatePosition(t *testing.T) {
-	anchors := make(map[string]loc.Point)
+	anchors := make(map[string]tasks.AnchorCfg)
 
-	anchors["0"] = loc.Point{0, 0, 0}
-	anchors["1"] = loc.Point{0, 100, 0}
-	anchors["2"] = loc.Point{100, 0, 0}
-	anchors["3"] = loc.Point{0, 0, 100}
+	anchors["0"] = tasks.AnchorCfg{Loc: loc.Point{0, 0, 0}, Offset: 0}
+	anchors["1"] = tasks.AnchorCfg{Loc: loc.Point{0, 100, 0}, Offset: 0}
+	anchors["2"] = tasks.AnchorCfg{Loc: loc.Point{100, 0, 0}, Offset: 0}
+	anchors["3"] = tasks.AnchorCfg{Loc: loc.Point{0, 0, 100}, Offset: 0}
 	s := new(state.State)
 	task := tasks.NewEstimatePosition(anchors)
 
@@ -131,7 +131,7 @@ func TestEstimatePosition(t *testing.T) {
 	j := loc.Point{10, -34, 23}
 
 	for i, a := range anchors {
-		ranges[i] = state.AnchorReport{Range: j.Distance(a)}
+		ranges[i] = state.AnchorReport{Range: j.Distance(a.Loc) + a.Offset}
 	}
 	s.RangeReport = ranges
 
