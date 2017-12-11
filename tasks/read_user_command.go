@@ -47,7 +47,7 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 		t.bot.Reply(msg, "OK :smile:")
 	case "vai":
 		if len(tokens[1:]) != 1 {
-			t.bot.Reply(msg, "forse volevi dire \"vai piano\" o \"vai sodo\"")
+			t.bot.Reply(msg, "forse volevi dire _vai piano_ o _vai sodo_")
 		}
 		switch tokens[1] {
 		case "piano":
@@ -59,12 +59,12 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 			s.Motors[1].Speed = 255
 			t.bot.Reply(msg, "OK :smile:")
 		default:
-			t.bot.Reply(msg, "forse volevi dire \"vai piano\" o \"vai sodo\"")
+			t.bot.Reply(msg, "forse volevi dire _vai piano_ o _vai sodo_")
 		}
 
 	case "power":
 		if len(tokens[1:]) != 1 {
-			t.bot.Reply(msg, "forse volevi dire \"POWER 1\" o \"POWER 0\"")
+			t.bot.Reply(msg, "forse volevi dire _power 1_ o _power 0_")
 			return nil
 		}
 		s.Power = tokens[1] == "1"
@@ -72,7 +72,7 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 
 	case "speed":
 		if len(tokens[1:]) != 2 {
-			t.bot.Reply(msg, "forse volevi dire \"MOTOR 255 255\"")
+			t.bot.Reply(msg, "forse volevi dire _speed 255 255_")
 			return nil
 		}
 
@@ -100,7 +100,7 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 		}
 		t.bot.Reply(msg, string(data))
 	default:
-		t.bot.Reply(msg, "non ho capito!")
+		t.bot.Reply(msg, "non ho capito! :scream:")
 	}
 
 	return nil
