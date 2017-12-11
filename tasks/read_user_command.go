@@ -70,7 +70,7 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 		s.Power = tokens[1] == "1"
 		t.bot.Reply(msg, "OK :smile:")
 
-	case "motor":
+	case "speed":
 		if len(tokens[1:]) != 2 {
 			t.bot.Reply(msg, "forse volevi dire \"MOTOR 255 255\"")
 			return nil
