@@ -48,6 +48,7 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 	case "vai":
 		if len(tokens[1:]) != 1 {
 			t.bot.Reply(msg, "forse volevi dire _vai piano_ o _vai sodo_")
+			return nil
 		}
 		switch tokens[1] {
 		case "piano":
