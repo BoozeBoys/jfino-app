@@ -19,6 +19,7 @@ type Config struct {
 	SerialDevice string
 	BaudRate     int
 	Anchors      map[string]tasks.AnchorCfg
+	SlackToken   string
 }
 
 func (c *Config) String() string {
@@ -72,6 +73,7 @@ func main() {
 	taskList := []tasks.Task{
 		tasks.NewUpdateStatus(c),
 		tasks.NewEstimatePosition(config.Anchors),
+		tasks.NewReadUserCommand(config.SlackToken),
 		tasks.NewSendCommands(c),
 	}
 
