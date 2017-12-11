@@ -9,8 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/BoozeBoys/jfino-app/loc"
-
 	"github.com/BoozeBoys/jfino-app/commander"
 	"github.com/BoozeBoys/jfino-app/state"
 	"github.com/BoozeBoys/jfino-app/tasks"
@@ -20,7 +18,7 @@ import (
 type Config struct {
 	SerialDevice string
 	BaudRate     int
-	Anchors      map[string]loc.Point
+	Anchors      map[string]tasks.AnchorCfg
 }
 
 func (c *Config) String() string {
@@ -84,7 +82,9 @@ func main() {
 
 	for range t.C {
 		for _, t := range taskList {
-			t.Perform(state)
+			if err := t.Perform(state); err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }
