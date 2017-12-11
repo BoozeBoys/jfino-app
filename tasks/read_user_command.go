@@ -99,6 +99,8 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 
 		}
 		t.bot.Reply(msg, string(data))
+	default:
+		t.bot.Reply(msg, "non ho capito!")
 	}
 
 	return nil
