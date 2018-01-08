@@ -51,6 +51,15 @@ func TestPointIsEqual(t *testing.T) {
 	}
 }
 
+func TestPointSub(t *testing.T) {
+	p0 := loc.Point{0, 0, 0}
+	p2 := loc.Point{1, 1, 1}
+
+	if !p0.Sub(p2).IsEqual(loc.Point{-1, -1, -1}) {
+		t.FailNow()
+	}
+}
+
 func TestPointDistance(t *testing.T) {
 	p1 := loc.Point{0, 0, 0}
 	p2 := loc.Point{4, 5, 9}
