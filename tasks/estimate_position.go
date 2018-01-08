@@ -27,6 +27,10 @@ func NewEstimatePosition(anchors map[string]AnchorCfg) *EstimatePosition {
  */
 func (ep *EstimatePosition) Perform(s *state.State) error {
 	box := ep.FindBoundingBox(s.RangeReport)
+
+	/* Look for position around the floor (+20cm from the floor) */
+	box[0][2] = 0
+	box[1][2] = 0.2
 	p, acc := ep.ComputePosition(box, s.RangeReport)
 	s.CurrentPosition = p
 	s.PositionAccuracy = acc
