@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/BoozeBoys/jfino-app/loc"
+
 	"github.com/BoozeBoys/jfino-app/commander"
 	"github.com/BoozeBoys/jfino-app/state"
 	"github.com/BoozeBoys/jfino-app/tasks"
@@ -20,6 +22,7 @@ type Config struct {
 	BaudRate     int
 	Anchors      map[string]tasks.AnchorCfg
 	SlackToken   string
+	Threshold    loc.Meters
 }
 
 func (c *Config) String() string {
@@ -74,6 +77,8 @@ func main() {
 		tasks.NewUpdateStatus(c),
 		tasks.NewEstimatePosition(config.Anchors),
 		tasks.NewReadUserCommand(config.SlackToken),
+		tasks.NewNavigate(config.Threshold),
+		/* Pilot */
 		tasks.NewSendCommands(c),
 	}
 

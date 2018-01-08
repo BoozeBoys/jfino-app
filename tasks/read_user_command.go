@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/BoozeBoys/jfino-app/loc"
+
 	"github.com/BoozeBoys/jfino-app/slackbot"
 	"github.com/BoozeBoys/jfino-app/state"
 )
@@ -100,6 +102,29 @@ func (t *ReadUserCommand) Perform(s *state.State) error {
 
 		}
 		t.bot.Reply(msg, string(data))
+	case "naviga":
+		if len(tokens[1:]) != 2 {
+			t.bot.Reply(msg, "forse volevi dire _naviga x y_")
+			return nil
+		}
+
+		x, err := strconv.ParseFloat(tokens[1], 64)
+		if err != nil {
+			t.bot.Reply(msg, "forse volevi dire _naviga x y_")
+			return err
+		}
+
+		y, err := strconv.ParseFloat(tokens[2], 64)
+		if err != nil {
+			t.bot.Reply(msg, "forse volevi dire _naviga x y_")
+			return err
+		}
+
+		s.DestinationPoint[0] = loc.Meters(x)
+		s.DestinationPoint[1] = loc.Meters(y)
+		s.DestinationPoint[2] = 0
+		s.Autopilot = true
+		t.bot.Reply(msg, "OK, viaggio! :smile:")
 	default:
 		t.bot.Reply(msg, "non ho capito! :scream:")
 	}

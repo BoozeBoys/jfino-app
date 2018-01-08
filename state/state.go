@@ -20,4 +20,7 @@ type State struct {
 	RangeReport      map[string]AnchorReport
 	CurrentPosition  loc.Point
 	PositionAccuracy loc.Meters
+	Autopilot        bool
+	DestinationPoint loc.Point
+	Course           loc.Point
 }
