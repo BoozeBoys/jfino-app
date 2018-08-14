@@ -10,6 +10,32 @@ import (
 	"github.com/BoozeBoys/jfino-app/testutils"
 )
 
+func TestHelo(t *testing.T) {
+	cases := []struct {
+		reply [][]byte
+		err   error
+	}{
+		{[][]byte{[]byte("HELO")}, nil},
+		{[][]byte{[]byte("FOO")}, commander.Error},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(fmt.Sprintf("reply=%v error=%v", tc.reply, tc.err != nil), func(tt *testing.T) {
+			tt.Parallel()
+
+			rw := testutils.NewSerialMock(tc.reply)
+			c := commander.New(rw)
+
+			err := c.WaitHelo()
+
+			if err != tc.err {
+				tt.Errorf("want: %v got: %v\n", tc.err, err)
+			}
+		})
+	}
+}
+
 func TestPower(t *testing.T) {
 	cases := []struct {
 		reply [][]byte

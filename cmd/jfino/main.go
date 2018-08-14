@@ -66,11 +66,10 @@ func main() {
 	}
 	defer s.Close()
 
-	time.Sleep(2 * time.Second)
-
 	c := commander.New(s)
 
 	taskList := []tasks.Task{
+		tasks.NewWaitHelo(c),
 		tasks.NewUpdateStatus(c),
 		tasks.NewEstimatePosition(config.Anchors),
 		tasks.NewReadUserCommand(config.SlackToken),

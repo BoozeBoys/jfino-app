@@ -15,6 +15,7 @@ type AnchorReport struct {
 }
 
 type State struct {
+	ConnectedToFW    bool
 	Power            bool
 	Motors           [2]Motor
 	RangeReport      map[string]AnchorReport
