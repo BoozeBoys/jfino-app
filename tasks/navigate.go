@@ -21,8 +21,10 @@ func (c *Navigate) Perform(s *state.State) error {
 	dp := s.DestinationPoint
 	cp[2] = 0
 	dp[2] = 0
-	if cp.Distance(dp) < c.threshold {
+	if s.Autopilot == true && cp.Distance(dp) < c.threshold {
 		s.Autopilot = false
+		s.Motors[0].Speed = 0
+		s.Motors[1].Speed = 0
 	}
 	return nil
 }

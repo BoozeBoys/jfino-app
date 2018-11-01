@@ -1,11 +1,13 @@
 package tasks
 
 import (
+	"log"
 	"math"
 
 	"github.com/BoozeBoys/jfino-app/loc"
 
 	"github.com/BoozeBoys/jfino-app/state"
+	"gonum.org/v1/gonum/optimize"
 )
 
 type AnchorCfg struct {
@@ -37,20 +39,25 @@ func (ep *EstimatePosition) Perform(s *state.State) error {
 	return nil
 }
 
+func (ep *EstimatePosition) ErrorRms(report map[string]state.AnchorReport, j loc.Point) loc.Meters {
+	mse := 0.0
+
+	for id, r := range report {
+		dist := float64(j.Distance(ep.anchors[id].Loc))
+		mse += math.Pow(dist-float64(r.Range-ep.anchors[id].Offset), 2)
+	}
+
+	return loc.Meters(mse / float64(len(report)))
+}
+
 /*ErrorPtoP gives the Peak-to-Peak (+/-) error between
  * the measured anchor ranges and the distance from the point j to each anchor.
  * TODO: use anchor power report to weight the mean computation.
  */
 func (ep *EstimatePosition) ErrorPtoP(report map[string]state.AnchorReport, j loc.Point) loc.Meters {
-	e := 0.0
-
-	for id, r := range report {
-		dist := float64(j.Distance(ep.anchors[id].Loc))
-		e += math.Pow(dist-float64(r.Range-ep.anchors[id].Offset), 2)
-	}
 
 	// return error as distance +/- from average (stddev *3 which covers 99.7% probability)
-	return loc.Meters(math.Sqrt(e/float64(len(report))) * 3)
+	return loc.Meters(math.Sqrt(float64(ep.ErrorRms(report, j))) * 3)
 }
 
 /*FindBoundingBox finds the box that contains the target point we are looking for.
@@ -97,22 +104,51 @@ const expandFactor = 1.55
 const maxIter = 50
 
 func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[string]state.AnchorReport) (j loc.Point, accuracy loc.Meters) {
+	f := func(x []float64) float64 {
+		j = loc.Point{loc.Meters(x[0]), loc.Meters(x[1]), loc.Meters(x[2])}
+		return float64(ep.ErrorRms(report, j))
+	}
 
-loop:
-	for i := 0; i < maxIter; i++ {
-		s := box.Bisect()
-		accuracy = box[0].Distance(box[1])
+	grad := func(grad []float64, x []float64) {
+		j = loc.Point{loc.Meters(x[0]), loc.Meters(x[1]), loc.Meters(x[2])}
 
-		for _, v := range s {
-			if acc := ep.ErrorPtoP(report, v.Center()); acc < accuracy {
-				accuracy = acc
-				box = v.Expand(expandFactor)
-				if accuracy <= minAccuracy {
-					break loop
-				}
+		for i := range j {
+			grad[i] = 0
+		}
+
+		for id, r := range report {
+			dr := float64(r.Range)
+			d := float64(j.Distance(ep.anchors[id].Loc))
+			for i := range j {
+				xi := float64(ep.anchors[id].Loc[i])
+				dv := (x[i] - xi) / d
+				grad[i] += (2 * dv * (d - dr))
 			}
+		}
+
+		for i := range j {
+			grad[i] /= float64(len(report))
 		}
 	}
 
-	return box.Center(), accuracy
+	p := optimize.Problem{
+		Func: f,
+		Grad: grad,
+	}
+	mid := box.Center()
+	x := []float64{float64(mid[0]), float64(mid[1]), float64(mid[2])}
+	settings := optimize.DefaultSettingsLocal()
+	settings.Recorder = nil
+	settings.GradientThreshold = 1e-12
+	settings.FunctionConverge = nil
+
+	result, err := optimize.Minimize(p, x, settings, &optimize.BFGS{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = result.Status.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return loc.Point{loc.Meters(result.X[0]), loc.Meters(result.X[1]), loc.Meters(result.X[2])}, loc.Meters(result.F)
 }
