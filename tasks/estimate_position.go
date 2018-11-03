@@ -1,13 +1,13 @@
 package tasks
 
 import (
-	"log"
 	"math"
 
 	"github.com/BoozeBoys/jfino-app/loc"
 
 	"github.com/BoozeBoys/jfino-app/state"
-	"gonum.org/v1/gonum/optimize"
+
+	lbfgsb "github.com/idavydov/go-lbfgsb"
 )
 
 type AnchorCfg struct {
@@ -39,6 +39,10 @@ func (ep *EstimatePosition) Perform(s *state.State) error {
 	return nil
 }
 
+/*ErrorRms gives the Root Mean Square (+/-) error between
+ * the measured anchor ranges and the distance from the point j to each anchor.
+ * TODO: use anchor power report to weight the mean computation.
+ */
 func (ep *EstimatePosition) ErrorRms(report map[string]state.AnchorReport, j loc.Point) loc.Meters {
 	mse := 0.0
 
@@ -52,7 +56,6 @@ func (ep *EstimatePosition) ErrorRms(report map[string]state.AnchorReport, j loc
 
 /*ErrorPtoP gives the Peak-to-Peak (+/-) error between
  * the measured anchor ranges and the distance from the point j to each anchor.
- * TODO: use anchor power report to weight the mean computation.
  */
 func (ep *EstimatePosition) ErrorPtoP(report map[string]state.AnchorReport, j loc.Point) loc.Meters {
 
@@ -109,8 +112,10 @@ func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[string]state
 		return float64(ep.ErrorRms(report, j))
 	}
 
-	grad := func(grad []float64, x []float64) {
+	grad := func(x []float64) []float64 {
+
 		j = loc.Point{loc.Meters(x[0]), loc.Meters(x[1]), loc.Meters(x[2])}
+		var grad [len(j)]float64
 
 		for i := range j {
 			grad[i] = 0
@@ -129,26 +134,24 @@ func (ep *EstimatePosition) ComputePosition(box loc.Box, report map[string]state
 		for i := range j {
 			grad[i] /= float64(len(report))
 		}
+		return grad[:]
 	}
 
-	p := optimize.Problem{
-		Func: f,
-		Grad: grad,
+	gof := lbfgsb.GeneralObjectiveFunction{
+		Function: f,
+		Gradient: grad,
 	}
+
 	mid := box.Center()
 	x := []float64{float64(mid[0]), float64(mid[1]), float64(mid[2])}
-	settings := optimize.DefaultSettingsLocal()
-	settings.Recorder = nil
-	settings.GradientThreshold = 1e-12
-	settings.FunctionConverge = nil
-
-	result, err := optimize.Minimize(p, x, settings, &optimize.BFGS{})
-	if err != nil {
-		log.Fatal(err)
+	optimizer := new(lbfgsb.Lbfgsb)
+	var bounds [len(box[0])][2]float64
+	for i := range box[0] {
+		bounds[i][0] = math.Min(float64(box[0][i]), float64(box[1][i]))
+		bounds[i][1] = math.Max(float64(box[0][i]), float64(box[1][i]))
 	}
-	if err = result.Status.Err(); err != nil {
-		log.Fatal(err)
-	}
+	optimizer.SetBounds(bounds[:])
+	minimum, _ := optimizer.Minimize(&gof, x)
 
-	return loc.Point{loc.Meters(result.X[0]), loc.Meters(result.X[1]), loc.Meters(result.X[2])}, loc.Meters(result.F)
+	return loc.Point{loc.Meters(minimum.X[0]), loc.Meters(minimum.X[1]), loc.Meters(minimum.X[2])}, loc.Meters(minimum.F)
 }
