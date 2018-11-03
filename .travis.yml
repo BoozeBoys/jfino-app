@@ -1,6 +1,8 @@
 language: go
 go:
   - master
+before_install:
+  - sudo apt-get install gfortran
 script:
   - go test -v -race -coverprofile=coverage.txt ./...
 after_success:
