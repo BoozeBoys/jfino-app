@@ -91,7 +91,7 @@ func TestComputePosition(t *testing.T) {
 	r := rand.New(rand.NewSource(0))
 	ep := tasks.NewEstimatePosition(anchors)
 	errCount := 0
-	cnt := 10000
+	cnt := 100000
 	for i := 0; i < cnt; i++ {
 		ranges := make(map[string]state.AnchorReport)
 		x := loc.Meters(r.Float64() * 100)
@@ -106,10 +106,11 @@ func TestComputePosition(t *testing.T) {
 
 		p, _ := ep.ComputePosition(ep.FindBoundingBox(ranges), ranges)
 
-		//fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, float64(acc), p.Distance(j))
+		//fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, float64(err), p.Distance(j))
 		if p.Distance(j) > err {
 			errCount++
 			fmt.Println("Error:", errCount)
+			fmt.Printf("p %v, accuracy +/-%.2f, actual dist %f, \n", p, float64(err), p.Distance(j))
 		}
 	}
 	if errCount > int(float64(cnt)*(1-0.99)) {
