@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/idavydov/go-lbfgsb"
+  packages = ["."]
+  revision = "3cc8cafaf5e6838547276e2af13dbfde062e0ee0"
+  version = "v0.1.0"
+
+[[projects]]
   name = "github.com/nlopes/slack"
   packages = ["."]
   revision = "c86337c0ef2486a15edd804355d9c73d2f2caed1"
@@ -22,6 +28,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e58efd1d9a233c0ab22490aee1982d33c8dd60ee15cc76d6a1326138a4825d49"
+  inputs-digest = "b50d6fcf8b6a8d7d29bf833104bbc09db4c9def7600505a634b3ef1f084468a4"
   solver-name = "gps-cdcl"
   solver-version = 1
