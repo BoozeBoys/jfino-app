@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Aubrey Barnard.  This is free software.  See
+// Copyright (c) 2014 Aubrey Barnard.  This is free software.  See
 // LICENSE.txt for details.
 
 // Go package that provides an interface to the Fortran implementation
@@ -11,7 +11,18 @@ package lbfgsb
 
 // Declarations for Cgo
 
-// #cgo LDFLAGS: -lgfortran -lm
+// Please note that originally go-lbfgs was compiled with a set of
+// fortran-specific flags. We can use FFLAGS cgo directive to have an
+// original set of flags:
+// // #cgo FFLAGS: -fimplicit-none -finit-local-zero -fbounds-check
+
+// But Cgo does not support FFLAGS yet (github issue #18975).  Also
+// introducing such a directive would break a compatibility with pre
+// 1.7 version of Go.  I think that everything should work properly
+// with the defaul CGO compilation flags.  If you run into issues you
+// can use CGO_FFLAGS environment variable.
+
+// #cgo LDFLAGS: -lgfortran -lquadmath -lm
 // #include "lbfgsb_go_interface.h"
 import "C"
 
@@ -19,6 +30,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"sync"
 	"unsafe"
 )
 
@@ -292,14 +304,17 @@ func (lbfgsb *Lbfgsb) Minimize(
 	upperBounds := makeCCopySlice_Float(lbfgsb.upperBounds, dim)
 
 	// Set up callbacks for function, gradient, and logging
-	callbackData_c := unsafe.Pointer(
-		&callbackData{objective: objective})
+	cId := registerCallback(objective)
+	defer unregisterCallback(cId)
+	callbackData_c := unsafe.Pointer(cId)
 	var doLogging_c C.int                        // false
 	var logFunctionCallbackData_c unsafe.Pointer // null
+	var loggerId uintptr
 	if lbfgsb.logger != nil {
 		doLogging_c = C.int(1) // true
-		logFunctionCallbackData_c = unsafe.Pointer(
-			&logCallbackData{logger: lbfgsb.logger})
+		loggerId = registerCallback(lbfgsb.logger)
+		defer unregisterCallback(loggerId)
+		logFunctionCallbackData_c = unsafe.Pointer(loggerId)
 	}
 
 	// Allocate arrays for return value
@@ -314,7 +329,7 @@ func (lbfgsb *Lbfgsb) Minimize(
 
 	// Prepare buffers and arrays for C.  Avoid allocation in C land by
 	// allocating compatible things in Go and passing their addresses.
-	// The following arrays may not be iteroperably type-safe but this
+	// The following arrays may not be interoperably type-safe but this
 	// is how they did it on the Cgo page: http://golang.org/cmd/cgo/.
 	// (One could always allocate slices of C types, pass those, and
 	// then copy out and convert the contents on return.)
@@ -372,26 +387,64 @@ func makeCCopySlice_Float(slice []float64, sliceLen int) (
 	return
 }
 
-// Statistics returns some statistics about the most recent
+// OptimizationStatistics returns some statistics about the most recent
 // minimization: the total number of iterations and the total numbers of
 // function and gradient evaluations.
 func (lbfgsb *Lbfgsb) OptimizationStatistics() OptimizationStatistics {
 	return lbfgsb.statistics
 }
 
-// callbackData is a container for the actual objective function and
+// callbackFunctions is a container for the actual objective functions and
 // related data.
-type callbackData struct {
-	objective FunctionWithGradient
+var callbackFunctions = make(map[uintptr]interface{})
+
+// callbackIndex stores an index to use for new callback function.
+var callbackIndex uintptr
+
+// callbackMutex is a mutex preventing simultanious access to callback
+// and callbackIds.
+var callbackMutex sync.Mutex
+
+// registerCallback registers a new callback and returns its' index
+// (>=1).
+func registerCallback(f interface{}) uintptr {
+	callbackMutex.Lock()
+	defer callbackMutex.Unlock()
+	// We always increment callbackIndex to have more or less
+	// unique ids. This way it is easier to debug problems with
+	// reusing unregistered ids.
+	callbackIndex++
+	startIndex := callbackIndex
+	for callbackIndex == 0 || callbackFunctions[callbackIndex] != nil {
+		// Find the first free non-zero index.
+		callbackIndex++
+		// If the map is full, i.e. all non-zero uintptrs were
+		// used, we do not want to loop infinitely. We check
+		// if we already encountered the starting index. If
+		// so, we panic. In practice this is very unlikely to
+		// have this kind of problem since all the objects are
+		// unregistered at the end of the function call.
+		if callbackIndex == startIndex {
+			panic("no more space in the map to store a callback function")
+		}
+	}
+	callbackFunctions[callbackIndex] = f
+	return callbackIndex
 }
 
-// logCallbackData is a container for the logging function.  It might be
-// tempting to just use a function pointer instead of this container,
-// but passing a function pointer to void* in C possibly truncates the
-// address because void* is for data pointers only and function pointers
-// may be wider.
-type logCallbackData struct {
-	logger OptimizationIterationLogger
+// lookupCallback returns a callback function given an index.
+func lookupCallback(i uintptr) interface{} {
+	callbackMutex.Lock()
+	defer callbackMutex.Unlock()
+	return callbackFunctions[i]
+}
+
+// unregisterCallback unregisters a callback by removing it from the
+// callbackFunctions map.
+func unregisterCallback(i uintptr) {
+	callbackMutex.Lock()
+	defer callbackMutex.Unlock()
+	delete(callbackFunctions, i)
 }
 
 // go_objective_function_callback is an adapter between the C callback
@@ -411,11 +464,11 @@ func go_objective_function_callback(
 	// Convert inputs
 	dim := int(dim_c)
 	wrapCArrayAsGoSlice_Float64(point_c, dim, &point)
-	cbData := (*callbackData)(callbackData_c)
+	objective := lookupCallback(uintptr(callbackData_c)).(FunctionWithGradient)
 
 	// Evaluate the objective function.  Let panics propagate through
 	// C/Fortran.
-	value := cbData.objective.Evaluate(point)
+	value := objective.EvaluateFunction(point)
 
 	// Convert outputs
 	*value_c = C.double(value)
@@ -442,11 +495,11 @@ func go_objective_gradient_callback(
 	// Convert inputs
 	dim := int(dim_c)
 	wrapCArrayAsGoSlice_Float64(point_c, dim, &point)
-	cbData := (*callbackData)(callbackData_c)
+	objective := lookupCallback(uintptr(callbackData_c)).(FunctionWithGradient)
 
 	// Evaluate the gradient of the objective function.  Let panics
 	// propagate through C/Fortran.
-	gradRet = cbData.objective.EvaluateGradient(point)
+	gradRet = objective.EvaluateGradient(point)
 
 	// Convert outputs
 	wrapCArrayAsGoSlice_Float64(gradient_c, dim, &gradient)
@@ -478,11 +531,11 @@ func go_log_function_callback(
 	wrapCArrayAsGoSlice_Float64(g_c, dim, &g)
 
 	// Get the logging function from the callback data
-	cbData := (*logCallbackData)(logCallbackData_c)
+	logger := lookupCallback(uintptr(logCallbackData_c)).(OptimizationIterationLogger)
 
 	// Call the logging function.  Let panics propagate through
 	// C/Fortran.
-	cbData.logger(
+	logger(
 		&OptimizationIterationInformation{
 			Iteration:   int(iteration_c),
 			FEvals:      int(fgEvals_c),

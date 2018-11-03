@@ -22,6 +22,18 @@ software](http://users.eecs.northwestern.edu/~nocedal/software.html) by
 the authors of the algorithm, Jorge Nocedal et al.  Interfaces are
 provided for Go (Golang), C, and Fortran 2003.
 
+This is a **fork** of
+[go-lbfgsb](https://github.com/afbarnard/go-lbfgsb) by
+[@afbarnard](https://github.com/afbarnard). Here I
+([@idavydov](https://github.com/idavydov)) have fixed
+[a bug](https://github.com/afbarnard/go-lbfgsb/issues/4) related to
+the
+[change of cgo rules](https://github.com/golang/go/issues/12416). I
+hope eventially
+[my fix](https://github.com/afbarnard/go-lbfgsb/pull/7) gets accepted
+to the mainstream. For now you can use this repository in your
+imports. Also with go 1.7 or later you can install without make. The
+rest of the README is mostly kept unchanged.
 
 License
 -------
@@ -102,16 +114,25 @@ Building this software requires:
 Download, Build, Install
 ------------------------
 
-Conveniently, you can use the Go tools to download, build, and install
+If you are using Go 1.7 or later you can install go-lbfgsb just with
+`go get`.
+
+```shell
+[go-wrkspc]$ go get github.com/idavydov/go-lbfgsb
+```
+
+With older versions of Go you have to download, build, and install
 this package, but it is not quite fully automatic: there is an
-intervening step to compile the Fortran code.
+intervening step to compile the Fortran code.  This is needed because
+the Go compilers before 1.7 did not know Fortran.
 
 1. Download.  Using `go get` requires `git`.  If you want to download
    the latest code after having downloaded this package previously, add
-   the update flag (`-u`) to the command.
+   the update flag (`-u`) to the command.  The `-d` flag tells Go to
+   only download the code and not build or install the package.
 
    ```shell
-   [go-wrkspc]$ go get -d github.com/afbarnard/go-lbfgsb
+   [go-wrkspc]$ go get -d github.com/idavydov/go-lbfgsb
    ```
 
 2. Build Fortran.  Change to the directory containing the downloaded
@@ -122,23 +143,23 @@ intervening step to compile the Fortran code.
    ```shell
    [go-wrkspc]$ echo $GOPATH
    /home/go-pkgs:/home/go-wrkspc
-   [go-wrkspc]$ cd ~/go-pkgs/src/github.com/afbarnard/go-lbfgsb
+   [go-wrkspc]$ cd ~/go-pkgs/src/github.com/idavydov/go-lbfgsb
    [go-lbfgsb]$ make
    [go-lbfgsb]$ cd ~/go-wrkspc
    ```
 
 3. Build, install Go.  Run `go get` again to complete the Go
-   installation.
+   installation.  This builds and installs the package.
 
    ```shell
-   [go-wrkspc]$ go get github.com/afbarnard/go-lbfgsb
+   [go-wrkspc]$ go get github.com/idavydov/go-lbfgsb
    ```
 
 4. Use.  Import the `go-lbfgsb` package into your Go program.  Build
    your program normally.
 
    ```go
-   import lbfgsb "github.com/afbarnard/go-lbfgsb"
+   import lbfgsb "github.com/idavydov/go-lbfgsb"
    ```
 
    ```shell
@@ -179,13 +200,16 @@ manually and make it part of your Go workspace.
    ```
 
 
-Contact
--------
+Contact, Contribute
+-------------------
 
 * [Aubrey Barnard](https://github.com/afbarnard)
 
-Contributions of all sorts, patches, bugs, issues, etc. are welcome, but
-are most welcome after due diligence.
+Contributions of all sorts, patches, bugs, issues, questions, etc. are
+welcome, but are most welcome after due diligence.  Contact the author
+by creating a [new
+issue](https://github.com/afbarnard/go-lbfgsb/issues/new).  Contribute
+to the project by forking it, hacking, and issuing pull requests.
 
 
 Copyright (c) 2013 Aubrey Barnard.  This is free software.  See

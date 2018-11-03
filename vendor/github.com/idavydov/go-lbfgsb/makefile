@@ -16,7 +16,7 @@ compile_options := -g
 # General compiler warnings
 compile_warnings := -Wall -Wextra
 # Fortran compiler options.  Disallow implicit variables.
-compile_options_fortran := -fimplicit-none
+compile_options_fortran := -fimplicit-none -finit-local-zero
 
 # Compilation
 
@@ -28,12 +28,14 @@ all: liblbfgsb.a lbfgsb.syso
 # important.  I have checked the code for all the warnings about float
 # (in)equality and unused parameters.  They seem to be fine, so I have
 # disabled those warnings (which were only enabled by -Wextra anyway).
+
+# Fortran 2003 compilation; using f90 extension allows Go (v1.7 or later) recognize the source
+%.o: %.f90
+	$(compiler) $(compile_options) $(compile_warnings) $(compile_options_fortran) -fbounds-check -std=f2003 -c $< -o $@
+
 %.o: %.f
 	$(compiler) $(compile_options) $(compile_warnings) $(compile_options_fortran) -fbounds-check -std=legacy -Wno-compare-reals -Wno-unused-parameter -c $< -o $@
 
-# Fortran 2003 compilation
-%.o: %.f03
-	$(compiler) $(compile_options) $(compile_warnings) $(compile_options_fortran) -fbounds-check -std=f2003 -c $< -o $@
 
 # Dependencies
 
