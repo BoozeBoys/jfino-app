@@ -20,10 +20,12 @@ type Config struct {
 	BaudRate     int
 	Anchors      map[string]tasks.AnchorCfg
 	SlackToken   string
+	HttpPort     int
+	Root         string
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("SerialDevice: %s\nBaudRate: %d\nAnchors: %v\n", c.SerialDevice, c.BaudRate, c.Anchors)
+	return fmt.Sprintf("SerialDevice: %s\nBaudRate: %d\nAnchors: %v\nhttp port: %d\nroot: %s", c.SerialDevice, c.BaudRate, c.Anchors, c.HttpPort, c.Root)
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -75,6 +77,7 @@ func main() {
 		tasks.NewEstimatePosition(config.Anchors),
 		tasks.NewReadUserCommand(config.SlackToken),
 		tasks.NewSendCommands(c),
+		tasks.NewHttpMap(config.HttpPort, config.Root),
 	}
 
 	t := time.NewTicker(100 * time.Millisecond)

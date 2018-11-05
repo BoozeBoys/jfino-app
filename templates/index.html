@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Jofonchio Server Side Event Example in Go</title>
+</head>
+<body>
+
+	Jofonchio messages:<br>
+
+	<script type="text/javascript">
+
+	    // Create a new HTML5 EventSource
+	    var source = new EventSource('/events/');
+
+	    // Create a callback for when a new message is received.
+	    source.onmessage = function(e) {
+			document.body.innerHTML += e.data + '<br>';
+	    };
+	</script>
+</body>
+</html>
